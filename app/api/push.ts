@@ -1,18 +1,8 @@
 import { BlitzApiRequest, BlitzApiResponse } from "blitz"
-import awsIot from "aws-iot-device-sdk"
-import { publicConfig } from "app/core/config/public"
 import { BinPackage, SensorData } from "app/protogen/pebble"
-import path from "path"
+import { MqttService } from "app/service"
 
-const handler = (req: BlitzApiRequest, res: BlitzApiResponse) => {
-  console.log(path.resolve("app/core/config/tls/root.pem"))
-  var device = new awsIot.device({
-    keyPath: path.resolve("app/core/config/tls/root.pem"),
-    certPath: path.resolve("app/core/config/tls/e62b7b054e-certificate.pem.crt"),
-    caPath: path.resolve("app/core/config/tls/e62b7b054e-private.pem.key"),
-    host: `${publicConfig.awasurl}:${publicConfig.port}`,
-  })
-
+const handler = async (req: BlitzApiRequest, res: BlitzApiResponse) => {
   const requestData: SensorData = JSON.parse(req.body.data).message
   console.log(requestData)
   const sensorData = SensorData.create(requestData)
@@ -28,6 +18,15 @@ const handler = (req: BlitzApiRequest, res: BlitzApiResponse) => {
   const payload = BinPackage.encode(binPackage)
   // device.subscribe("device/${imei}/data")
   // device.publish("device/${imei}/data", payload.bytes())
-  res.json({ name: "John Doe" })
+
+  const client = await MqttService.createClient()
+  try {
+    const response = await client?.publish(`device/${103381234567402}/data`, JSON.stringify({}))
+    console.log(response)
+    res.json({ name: "John Doe", success: true })
+  } catch (e) {
+    console.log(e.toString())
+    res.json({ name: "John Doe", success: false })
+  }
 }
 export default handler
