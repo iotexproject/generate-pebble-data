@@ -8,6 +8,10 @@ import {
   useQueryErrorResetBoundary,
 } from "blitz"
 
+import { customTheme } from "app/core/layouts/theme"
+import { ChakraProvider } from "@chakra-ui/react"
+import { Toaster } from "react-hot-toast"
+
 export default function App({ Component, pageProps }: AppProps) {
   const getLayout = Component.getLayout || ((page) => page)
 
@@ -16,7 +20,10 @@ export default function App({ Component, pageProps }: AppProps) {
       FallbackComponent={RootErrorFallback}
       onReset={useQueryErrorResetBoundary().reset}
     >
-      {getLayout(<Component {...pageProps} />)}
+      <ChakraProvider theme={customTheme}>
+        <Toaster />
+        {getLayout(<Component {...pageProps} />)}
+      </ChakraProvider>
     </ErrorBoundary>
   )
 }
