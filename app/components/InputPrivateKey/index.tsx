@@ -21,7 +21,7 @@ import { observer, useLocalStore } from "mobx-react-lite"
 interface IComponentProps {
   isOpen?: any
   onClose: any
-  onInputPrivateKeySuccess: (string) => void
+  onInputPrivateKeySuccess: (privateKey: string, imei: string) => void
 }
 
 export const InputPrivateKeyDialog = observer((props: IComponentProps) => {
@@ -29,6 +29,7 @@ export const InputPrivateKeyDialog = observer((props: IComponentProps) => {
   const color = useColorModeValue("#000000D9", "white")
   const store = useLocalStore(() => ({
     buttonDisable: true,
+    imei: "103381234567400",
     privateKey: "af014862975162497bced9988518955bdc372fc3f545c25c9bf315f5c3b3c82a",
     colseModal() {
       store.reset()
@@ -36,13 +37,17 @@ export const InputPrivateKeyDialog = observer((props: IComponentProps) => {
     },
     reset() {
       store.privateKey = ""
+      store.imei = ""
     },
     next() {
-      onInputPrivateKeySuccess(store.privateKey)
+      onInputPrivateKeySuccess(store.privateKey, store.imei)
 
       onClose()
     },
     onInputChange(e: any, inputType: number) {
+      if (inputType === 0) {
+        store.imei = e.target.value
+      }
       if (inputType === 1) {
         store.privateKey = e.target.value
       }
@@ -51,7 +56,7 @@ export const InputPrivateKeyDialog = observer((props: IComponentProps) => {
     },
 
     buttonEnable() {
-      store.buttonDisable = !(store.privateKey.length > 0)
+      store.buttonDisable = !(store.privateKey.length > 0 && store.imei.length > 0)
     },
   }))
 
@@ -67,11 +72,29 @@ export const InputPrivateKeyDialog = observer((props: IComponentProps) => {
       <ModalOverlay />
       <ModalContent w={{ base: "90%", md: "100%" }}>
         <ModalHeader borderBottom="1px" borderColor="borderLight">
-          Input Device PrivateKey
+          Input Device Imei & private key
         </ModalHeader>
         {/* <ModalCloseButton /> */}
         <ModalBody py="1.25rem" color="textPrimary" fontFamily="Roboto">
           <Box color={color}>
+            <Flex
+              mt="15px"
+              alignItems={["flex-start", "center"]}
+              mb="3"
+              direction={["column", "row"]}
+            >
+              <Text fontSize="sm" w="140px" mb={[2, 0]}>
+                Device Imei
+              </Text>
+              <Input
+                onChange={(e) => {
+                  store.onInputChange(e, 0)
+                }}
+                value={store.imei}
+                placeholder={"Imei"}
+                size="sm"
+              />
+            </Flex>
             <Flex
               mt="15px"
               alignItems={["flex-start", "center"]}

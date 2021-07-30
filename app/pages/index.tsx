@@ -26,101 +26,88 @@ const ConstValue = "Const Value"
 
 const Home: BlitzPage = observer(() => {
   const GPSROUTES = [
-    { name: "ROME-MILAN", id: 1 },
-    { name: "ROME-MILAN2", id: 2 },
-    { name: "ROME-MILAN3", id: 3 },
+    { name: "ROME-MILAN", id: 0, latitude: 20000, longitude: 2000 },
+    { name: "ROME-MILAN2", id: 1, latitude: 20001, longitude: 2001 },
+    { name: "ROME-MILAN3", id: 2, latitude: 20002, longitude: 2002 },
   ]
 
   const RandomORConstValue = [
     { name: RandomValue, id: 1 },
     { name: ConstValue, id: 2 },
   ]
-  // tempture GasResistance SNR vbat gasResistance pressure humidity light temperature2 timestamp random latitude longitude
-  const COLUMN_TYPES = {
-    tempture: {
-      random: true,
-      value: 0,
-    },
-    GasResistance: {
-      random: true,
-      value: 0,
-    },
-    SNR: {
-      random: true,
-      value: 0,
-    },
-    vbat: {
-      random: true,
-      value: 0,
-    },
-    pressure: {
-      random: true,
-      value: 0,
-    },
-    humidity: {
-      random: true,
-      value: 0,
-    },
-    light: {
-      random: true,
-      value: 0,
-    },
-    temperature2: {
-      random: true,
-      value: 0,
-    },
-    timestamp: {
-      random: true,
-      value: 0,
-    },
-    latitude: {
-      random: true,
-      value: 0,
-    },
-    longitude: {
-      random: true,
-      value: 0,
-    },
-  }
+  // latitude longitude tempture GasResistance SNR vbat pressure humidity light temperature2 timestamp random
 
   const store = useLocalObservable(() => ({
     inputPrivateKeyDialogVisible: false,
     transmitLoading: false,
-    columnEnables: Array(16).fill(true) as boolean[],
+    buttonEnable: true,
+    columnEnables: Array(13).fill(true) as boolean[],
     formatType: null as unknown as string,
-    gpsRoute: "",
-    columnTypes: COLUMN_TYPES,
+    latitude: null as unknown as number,
+    longitude: null as unknown as number,
+    Temperature: "",
+    GasResistance: "",
+    SNR: "",
+    vbat: "",
+    pressure: "",
+    humidity: "",
+    light: "",
+    temperature2: "",
+    timestamp: "",
+    gyroscope: [],
+    accelerometer: [],
+    random: "",
+    columnTypes: [
+      { random: true, value: { max: "40", min: "20", value: "20" } },
+      { random: true, value: { max: "40", min: "20", value: "20" } },
+      { random: true, value: { max: "40", min: "20", value: "20" } },
+      { random: true, value: { max: "40", min: "20", value: "20" } },
+      { random: true, value: { max: "40", min: "20", value: "20" } },
+      { random: true, value: { max: "40", min: "20", value: "20" } },
+      { random: true, value: { max: "40", min: "20", value: "20" } },
+      { random: true, value: { max: "40", min: "20", value: "20" } },
+      { random: true, value: { max: "40", min: "20", value: "20" } },
+      { random: true, value: { max: "40", min: "20", value: "20" } },
+    ],
+    columnItems: [
+      "Temperature",
+      "GasResistance",
+      "SNR",
+      "vbat",
+      "pressure",
+      "humidity",
+      "light",
+      "temperature2",
+      "timestamp",
+      "random",
+    ],
     rows: "100",
-    async pushData(privateKey: string) {
+    async pushData(privateKey: string, imei: string) {
       const testSENSORDATA = {
         message: {
-          snr: 19,
-          vbat: 4167,
-          latitude: 20000,
-          longitude: 20000,
-          gasResistance: 7745665,
-          temperature: 24.389999389648438,
-          pressure: 1003,
-          humidity: 67.24214935302734,
-          light: 0,
-          temperature2: 29.3176326751709,
-          gyroscope: [-2, 3, 1],
-          accelerometer: [-35, 110, 8226],
-          timestamp: "1621943329",
-          random: "E1915DBE2ACCC9F3",
+          snr: store.SNR,
+          vbat: store.vbat,
+          latitude: store.latitude,
+          longitude: store.longitude,
+          gasResistance: store.GasResistance,
+          temperature: store.Temperature,
+          pressure: store.pressure,
+          humidity: store.humidity,
+          light: store.light,
+          temperature2: store.temperature2,
+          gyroscope: store.gyroscope,
+          accelerometer: store.accelerometer,
+          timestamp: store.timestamp,
+          random: store.random,
           eccPubkey:
             "E1B955AEDF34D18921E3DC2133F2B785BA4C40DBC1502A8BF6ECE674B80E25D8822C4686723BBC3CB4A58D881DE053A1444EE1873E5916907D2F8819ECC7A1B6",
-        },
-        signature: {
-          r: "597E7BF0F5C85D7A84C3C409CA358DE3C27A072587C884AE0452BD93D8F72F39",
-          s: "ACF44E758925A2454DB1880B31A3B1B11EEAE9BCEE67C423DADF8510B1A244CC",
         },
       }
       try {
         store.transmitLoading = true
         const response = await axios.post("/api/push", {
           data: JSON.stringify(testSENSORDATA.message),
-          imei: "103381234567400",
+          imei: imei,
           privateKey: privateKey,
         })
         store.transmitLoading = false
@@ -143,24 +130,66 @@ const Home: BlitzPage = observer(() => {
       store.export_csv(["aaa", "bbb", "ccc"], "test-csv")
     },
     onRandomOrConst(e: any, col: number) {
-      if (col === 1) {
-        store.columnTypes.tempture.random = e.target.value === RandomValue
-      }
-      console.log(col)
-
-      if (col === 2) {
-        store.columnTypes.GasResistance.random = e.target.value === RandomValue
-      }
+      store.columnTypes[col - 1]!.random = e.target.value === RandomValue
+      store.checckButtonEnable()
     },
     onGPSChange(e: any) {
-      store.gpsRoute = e.target.value
+      const route = GPSROUTES[e.target.value]
+      console.log(route)
+      store.latitude = route!.latitude
+      store.longitude = route!.longitude
     },
-    onAllInputChange(e: any) {
-      console.log(e.target.value)
-
+    onMaxInputChange(e: any, index: number) {
       if (/^[1-9]\d*$/.test(e.target.value)) {
-        if (e.target.value === "") {
-          store.rows = e.target.value
+        store.columnTypes[index]!.value.max = e.target.value
+      }
+      store.checckButtonEnable()
+    },
+    onMinInputChange(e: any, index: number) {
+      if (/^[1-9]\d*$/.test(e.target.value)) {
+        store.columnTypes[index]!.value.min = e.target.value
+      }
+      store.checckButtonEnable()
+    },
+    onValueInputChange(e: any, index: number) {
+      if (/^[1-9]\d*$/.test(e.target.value)) {
+        store.columnTypes[index]!.value.value = e.target.value
+      }
+      store.checckButtonEnable()
+    },
+    checckButtonEnable() {
+      store.buttonEnable = true
+      for (let index = 0; index < store.columnEnables.length; index++) {
+        const enable = store.columnEnables[index]
+        if (index === 0) {
+          // gps dont't need handle , it perfom defalut gps
+        } else if (index >= 11) {
+          // gyroscope && Accelerometer
+        } else {
+          // 1 - 10
+          // Temperature - random
+          const columnType = store.columnTypes[index - 1]!
+          if (enable === true) {
+            if (columnType.random === true) {
+              if (
+                columnType.value.min.length > 0 &&
+                columnType.value.max.length > 0 &&
+                parseInt(columnType.value.max) > parseInt(columnType.value.min)
+              ) {
+              } else {
+                console.log(columnType.value.min, columnType.value.max)
+                store.buttonEnable = false
+                break
+              }
+            } else {
+              if (columnType.value.value.length > 0) {
+              } else {
+                console.log(columnType.value.min, columnType.value.max)
+                store.buttonEnable = false
+                break
+              }
+            }
+          }
         }
       }
     },
@@ -183,13 +212,12 @@ const Home: BlitzPage = observer(() => {
       document.body.removeChild(downloadLink)
     },
     onEnableChanges(column: number) {
-      if (column > 16) {
+      if (column > 14) {
         return
       }
       let columnEnable = store.columnEnables[column]
       store.columnEnables[column] = !columnEnable
-      console.log(column)
-      console.log(store.columnEnables)
+      store.checckButtonEnable()
     },
   }))
 
@@ -227,7 +255,7 @@ const Home: BlitzPage = observer(() => {
               h="160px"
             >
               <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">Gas Route</Text>
+                <Text fontSize="20px">GPS Route</Text>
                 <Flex>
                   Enable
                   <Switch
@@ -250,7 +278,7 @@ const Home: BlitzPage = observer(() => {
               >
                 {GPSROUTES.map((item, index) => {
                   return (
-                    <option key={item.id} value={item.name}>
+                    <option key={item.id} value={item.id}>
                       {item.name}
                     </option>
                   )
@@ -258,601 +286,103 @@ const Home: BlitzPage = observer(() => {
               </Select>
             </Flex>
           </Flex>
-          <Flex align="center">
-            <Text mr="10px">column 2</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">Aimblent Temperature</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(1)}
-                    defaultChecked={store.columnEnables[1]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select
-                    mt="10px"
-                    onChange={(e) => {
-                      store.onRandomOrConst(e, 1)
-                    }}
-                    w="50%"
-                    placeholder="Select option"
+          {store.columnItems.map((item, index) => {
+            return (
+              <Box key={index}>
+                <Flex align="center">
+                  <Text mr="10px">column {index + 2}</Text>
+                  <Flex
+                    direction="column"
+                    mt="20px"
+                    height="100px"
+                    w="800px"
+                    border="1px solid gray"
+                    shadow="md"
+                    borderRadius="10px"
+                    h="160px"
                   >
-                    {RandomORConstValue.map((item, index) => {
-                      return (
-                        <option key={item.id} value={item.name}>
-                          {item.name}
-                        </option>
-                      )
-                    })}
-                  </Select>
-                </Flex>
-                {store.columnTypes.tempture.random ? (
-                  <Flex justify="space-between">
-                    <Flex width="25%" align="start" direction="column">
-                      <Text>Min</Text>
-                      <Input mt="10px" width="100px" placeholder="20" />
+                    <Flex p="10px" justify="space-between">
+                      <Text fontSize="20px">{item}</Text>
+                      <Flex>
+                        Enable
+                        <Switch
+                          onChange={() => store.onEnableChanges(index + 1)}
+                          defaultChecked={store.columnEnables[index + 1]}
+                          colorScheme="teal"
+                          ml="5px"
+                        ></Switch>
+                      </Flex>
                     </Flex>
-                    <Flex width="25%" align="start" direction="column">
-                      <Text>Max</Text>
-                      <Input mt="10px" width="100px" placeholder="20" />
-                    </Flex>
-                  </Flex>
-                ) : (
-                  <Flex width="50%" align="start" direction="column">
-                    <Text>Value</Text>
-                    <Input mt="10px" width="100px" placeholder="20" />
-                  </Flex>
-                )}
-              </Flex>
-            </Flex>
-          </Flex>
-          <Flex align="center">
-            <Text mr="10px">column 3</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">Gas Resistance</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(2)}
-                    defaultChecked={store.columnEnables[2]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select
-                    mt="10px"
-                    onChange={(e) => {
-                      store.onRandomOrConst(e, 2)
-                    }}
-                    w="50%"
-                    placeholder="Select option"
-                  >
-                    {RandomORConstValue.map((item, index) => {
-                      return (
-                        <option key={item.id} value={item.name}>
-                          {item.name}
-                        </option>
-                      )
-                    })}
-                  </Select>
-                </Flex>
-                {store.columnTypes.GasResistance.random ? (
-                  <Flex justify="space-between">
-                    <Flex width="25%" align="start" direction="column">
-                      <Text>Min</Text>
-                      <Input mt="10px" width="100px" placeholder="20" />
-                    </Flex>
-                    <Flex width="25%" align="start" direction="column">
-                      <Text>Max</Text>
-                      <Input mt="10px" width="100px" placeholder="20" />
+                    <Divider />
+                    <Flex px="20px" pt="20px" justify="start" width="100%">
+                      <Flex width="50%" align="start" direction="column">
+                        <Text>&nbsp;</Text>
+                        <Select
+                          mt="10px"
+                          onChange={(e) => {
+                            store.onRandomOrConst(e, index + 1)
+                          }}
+                          w="50%"
+                        >
+                          {RandomORConstValue.map((item, index) => {
+                            return (
+                              <option key={item.id} value={item.name}>
+                                {item.name}
+                              </option>
+                            )
+                          })}
+                        </Select>
+                      </Flex>
+                      {store.columnTypes[index]!.random ? (
+                        <Flex justify="space-between">
+                          <Flex width="25%" align="start" direction="column">
+                            <Text>Min</Text>
+                            <Input
+                              onChange={(e) => {
+                                store.onMinInputChange(e, index)
+                              }}
+                              value={store.columnTypes[index]!.value.min}
+                              mt="10px"
+                              width="100px"
+                              placeholder="20"
+                            />
+                          </Flex>
+                          <Flex width="25%" align="start" direction="column">
+                            <Text>Max</Text>
+                            <Input
+                              onChange={(e) => {
+                                store.onMaxInputChange(e, index)
+                              }}
+                              value={store.columnTypes[index]!.value.max}
+                              mt="10px"
+                              width="100px"
+                              placeholder="20"
+                            />
+                          </Flex>
+                        </Flex>
+                      ) : (
+                        <Flex width="50%" align="start" direction="column">
+                          <Text>Value</Text>
+                          <Input
+                            onChange={(e) => {
+                              store.onValueInputChange(e, index)
+                            }}
+                            value={store.columnTypes[index]!.value.value}
+                            mt="10px"
+                            width="100px"
+                            placeholder="20"
+                          />
+                        </Flex>
+                      )}
                     </Flex>
                   </Flex>
-                ) : (
-                  <Flex width="50%" align="start" direction="column">
-                    <Text>Value</Text>
-                    <Input mt="10px" width="100px" placeholder="20" />
-                  </Flex>
-                )}
-              </Flex>
-            </Flex>
-          </Flex>
-
-          <Flex align="center">
-            <Text mr="10px">column 4</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">SNR</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(3)}
-                    defaultChecked={store.columnEnables[3]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
                 </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select mt="10px" w="50%" placeholder="Select option">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                </Flex>
-                <Flex width="50%" align="start" direction="column">
-                  <Text>Value</Text>
-                  <Input mt="10px" width="100px" placeholder="20" />
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
-
-          <Flex align="center">
-            <Text mr="10px">column 5</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">vbat</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(4)}
-                    defaultChecked={store.columnEnables[4]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select mt="10px" w="50%" placeholder="Select option">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                </Flex>
-                <Flex width="50%" align="start" direction="column">
-                  <Text>Value</Text>
-                  <Input mt="10px" width="100px" placeholder="20" />
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
-
-          <Flex align="center">
-            <Text mr="10px">column 6</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">gasResistance</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(5)}
-                    defaultChecked={store.columnEnables[5]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select mt="10px" w="50%" placeholder="Select option">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                </Flex>
-                <Flex width="50%" align="start" direction="column">
-                  <Text>Value</Text>
-                  <Input mt="10px" width="100px" placeholder="20" />
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
-
-          <Flex align="center">
-            <Text mr="10px">column 7</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">pressure</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(6)}
-                    defaultChecked={store.columnEnables[6]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select mt="10px" w="50%" placeholder="Select option">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                </Flex>
-                <Flex width="50%" align="start" direction="column">
-                  <Text>Value</Text>
-                  <Input mt="10px" width="100px" placeholder="20" />
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
-
-          <Flex align="center">
-            <Text mr="10px">column 8</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">humidity</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(7)}
-                    defaultChecked={store.columnEnables[7]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select mt="10px" w="50%" placeholder="Select option">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                </Flex>
-                <Flex width="50%" align="start" direction="column">
-                  <Text>Value</Text>
-                  <Input mt="10px" width="100px" placeholder="20" />
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
-
-          <Flex align="center">
-            <Text mr="10px">column 9</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">light</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(8)}
-                    defaultChecked={store.columnEnables[8]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select mt="10px" w="50%" placeholder="Select option">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                </Flex>
-                <Flex width="50%" align="start" direction="column">
-                  <Text>Value</Text>
-                  <Input mt="10px" width="100px" placeholder="20" />
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
-
-          <Flex align="center">
-            <Text mr="10px">column 10</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">temperature2</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(9)}
-                    defaultChecked={store.columnEnables[9]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select mt="10px" w="50%" placeholder="Select option">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                </Flex>
-                <Flex width="50%" align="start" direction="column">
-                  <Text>Value</Text>
-                  <Input mt="10px" width="100px" placeholder="20" />
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
-
-          <Flex align="center">
-            <Text mr="10px">column 11</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">timestamp</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(10)}
-                    defaultChecked={store.columnEnables[10]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select mt="10px" w="50%" placeholder="Select option">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                </Flex>
-                <Flex width="50%" align="start" direction="column">
-                  <Text>Value</Text>
-                  <Input mt="10px" width="100px" placeholder="20" />
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
+              </Box>
+            )
+          })}
 
           <Flex align="center">
             <Text mr="10px">column 12</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">random</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(11)}
-                    defaultChecked={store.columnEnables[11]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select mt="10px" w="50%" placeholder="Select option">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                </Flex>
-                <Flex width="50%" align="start" direction="column">
-                  <Text>Value</Text>
-                  <Input mt="10px" width="100px" placeholder="20" />
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
-
-          <Flex align="center">
-            <Text mr="10px">column 13</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">latitude</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(12)}
-                    defaultChecked={store.columnEnables[12]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select mt="10px" w="50%" placeholder="Select option">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                </Flex>
-                <Flex width="50%" align="start" direction="column">
-                  <Text>Value</Text>
-                  <Input mt="10px" width="100px" placeholder="20" />
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
-
-          <Flex align="center">
-            <Text mr="10px">column 14</Text>
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              w="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">longitude</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(13)}
-                    defaultChecked={store.columnEnables[13]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex px="20px" pt="20px" justify="start" width="100%">
-                <Flex width="50%" align="start" direction="column">
-                  <Text>&nbsp;</Text>
-                  <Select mt="10px" w="50%" placeholder="Select option">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                  </Select>
-                </Flex>
-                <Flex width="50%" align="start" direction="column">
-                  <Text>Value</Text>
-                  <Input mt="10px" width="100px" placeholder="20" />
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
-
-          <Flex align="center">
-            <Text mr="10px">column 15</Text>
             <Flex
               direction="column"
               mt="20px"
@@ -863,7 +393,7 @@ const Home: BlitzPage = observer(() => {
               borderRadius="10px"
             >
               <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">Acceletometer</Text>
+                <Text fontSize="20px">Gyroscope</Text>
                 <Flex>
                   Lock X-Y-Z
                   <Switch colorScheme="teal" ml="5px"></Switch>
@@ -871,8 +401,8 @@ const Home: BlitzPage = observer(() => {
                 <Flex>
                   Enable
                   <Switch
-                    onChange={() => store.onEnableChanges(14)}
-                    defaultChecked={store.columnEnables[14]}
+                    onChange={() => store.onEnableChanges(11)}
+                    defaultChecked={store.columnEnables[11]}
                     colorScheme="teal"
                     ml="5px"
                   ></Switch>
@@ -942,7 +472,7 @@ const Home: BlitzPage = observer(() => {
         </Flex>
 
         <Flex align="center">
-          <Text mr="10px">column 16</Text>
+          <Text mr="10px">column 13</Text>
           <Flex
             direction="column"
             mt="20px"
@@ -953,7 +483,7 @@ const Home: BlitzPage = observer(() => {
             borderRadius="10px"
           >
             <Flex p="10px" justify="space-between">
-              <Text fontSize="20px">Gyroscope</Text>
+              <Text fontSize="20px">Accelerometer</Text>
               <Flex>
                 Lock X-Y-Z
                 <Switch colorScheme="teal" ml="5px"></Switch>
@@ -961,8 +491,8 @@ const Home: BlitzPage = observer(() => {
               <Flex>
                 Enable
                 <Switch
-                  onChange={() => store.onEnableChanges(15)}
-                  defaultChecked={store.columnEnables[15]}
+                  onChange={() => store.onEnableChanges(12)}
+                  defaultChecked={store.columnEnables[12]}
                   colorScheme="teal"
                   ml="5px"
                 ></Switch>
@@ -1078,6 +608,7 @@ const Home: BlitzPage = observer(() => {
             Generate && Save
           </Button>
           <Button
+            disabled={!store.buttonEnable}
             isLoading={store.transmitLoading}
             ml="15px"
             color="white"
@@ -1093,8 +624,8 @@ const Home: BlitzPage = observer(() => {
         onClose={() => {
           store.inputPrivateKeyDialogVisible = false
         }}
-        onInputPrivateKeySuccess={(privateKey) => {
-          store.pushData(privateKey)
+        onInputPrivateKeySuccess={(privateKey, imei) => {
+          store.pushData(privateKey, imei)
         }}
       ></InputPrivateKeyDialog>
     </Box>
