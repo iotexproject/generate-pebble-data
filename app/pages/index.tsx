@@ -2,8 +2,6 @@ import { Suspense } from "react"
 import { Link, BlitzPage, useMutation, Routes } from "blitz"
 import Layout from "app/core/layouts/Layout"
 import { observer, useLocalObservable } from "mobx-react-lite"
-import awsIot from "aws-iot-device-sdk"
-import { publicConfig } from "app/core/config/public"
 import { axios } from "app/lib/axios"
 import {
   Box,
@@ -17,7 +15,6 @@ import {
   Text,
 } from "@chakra-ui/react"
 import { SettingsIcon } from "@chakra-ui/icons"
-import { BinPackage, SensorData } from "app/protogen/pebble"
 import { InputPrivateKeyDialog } from "app/components/InputPrivateKey"
 import toast from "react-hot-toast"
 
