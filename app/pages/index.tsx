@@ -102,8 +102,6 @@ const Home: BlitzPage = observer(() => {
 
         gyroscope: store.gyroscope,
         accelerometer: store.accelerometer,
-        eccPubkey:
-          "E1B955AEDF34D18921E3DC2133F2B785BA4C40DBC1502A8BF6ECE674B80E25D8822C4686723BBC3CB4A58D881DE053A1444EE1873E5916907D2F8819ECC7A1B6",
       }
       console.log(testSENSORDATA)
       try {
