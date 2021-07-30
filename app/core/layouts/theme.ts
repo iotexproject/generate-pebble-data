@@ -18,9 +18,7 @@ export const customTheme = extendTheme({
       500: "#43C9BA",
     },
   },
-  fonts: {
-    body: "Roboto",
-  },
+  fonts: {},
   variants: {
     brandColor: "#43C9BA",
   },
