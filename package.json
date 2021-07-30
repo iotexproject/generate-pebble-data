@@ -39,7 +39,12 @@
     "react-dom": "alpha",
     "react-final-form": "6.5.3",
     "react-hot-toast": "2.0.0",
-    "zod": "3.5.1"
+    "zod": "3.5.1",
+    "async-mqtt": "^2.6.1",
+    "ethereumjs-util": "^7.0.10",
+    "lodash": "^4.17.21",
+    "mobx": "^6.2.0",
+    "mobx-react-lite": "^3.2.0"
   },
   "devDependencies": {
     "@types/aws-iot-device-sdk": "^2.2.3",
