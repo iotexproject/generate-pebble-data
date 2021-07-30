@@ -29,22 +29,24 @@
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
     "@prisma/client": "2.28.0",
+    "async-mqtt": "^2.6.1",
     "aws-crt": "^1.8.5",
     "aws-iot-device-sdk": "^2.2.10",
     "blitz": "0.38.6",
+    "ethereumjs-util": "^7.0.10",
     "final-form": "4.20.2",
     "framer-motion": "^4",
+    "lodash": "^4.17.21",
+    "mobx": "^6.2.0",
+    "mobx-react-lite": "^3.2.0",
+    "number-precision": "^1.5.0",
     "protobufjs": "^6.11.2",
     "react": "alpha",
     "react-dom": "alpha",
     "react-final-form": "6.5.3",
     "react-hot-toast": "2.0.0",
-    "zod": "3.5.1",
-    "async-mqtt": "^2.6.1",
-    "ethereumjs-util": "^7.0.10",
-    "lodash": "^4.17.21",
-    "mobx": "^6.2.0",
-    "mobx-react-lite": "^3.2.0"
+    "sha3": "^2.1.4",
+    "zod": "3.5.1"
   },
   "devDependencies": {
     "@types/aws-iot-device-sdk": "^2.2.3",
@@ -57,7 +59,6 @@
     "prettier-plugin-prisma": "0.15.0",
     "pretty-quick": "3.1.1",
     "preview-email": "3.0.4",
-    "prisma": "2.28.0",
     "typescript": "~4.3"
   },
   "private": true
