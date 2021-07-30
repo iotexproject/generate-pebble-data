@@ -1,10 +1,8 @@
-import dotenv from 'dotenv';
-import { np } from './precision.util';
+import dotenv from "dotenv"
 
 function process_init() {
-  const ma = require('module-alias/register');
-  dotenv.config({ path: '.env' });
-  np.init();
+  const ma = require("module-alias/register")
+  dotenv.config({ path: ".env" })
 }
 
-export { process_init };
+export { process_init }
