@@ -45,15 +45,6 @@ const Home: BlitzPage = observer(() => {
     formatType: null as unknown as string,
     latitude: null as unknown as number,
     longitude: null as unknown as number,
-    Temperature: "",
-    GasResistance: "",
-    SNR: "",
-    vbat: "",
-    pressure: "",
-    humidity: "",
-    light: "",
-    temperature2: "",
-    timestamp: "",
     gyroscope: [],
     accelerometer: [],
     random: "",
@@ -82,31 +73,43 @@ const Home: BlitzPage = observer(() => {
       "random",
     ],
     rows: "100",
+    genRandom(nn: string, mm: string) {
+      const n = parseInt(nn)
+      const m = parseInt(mm)
+      return Math.floor(Math.random() * (m - n + 1)) + n
+    },
+    genColumnData(col: any) {
+      const d = store.columnTypes[col]!.random
+        ? store.genRandom(store.columnTypes[col]!.value.max, store.columnTypes[col]!.value.min)
+        : store.columnTypes[col]!.value.value
+      return `${d}`
+    },
     async pushData(privateKey: string, imei: string) {
       const testSENSORDATA = {
-        message: {
-          snr: store.SNR,
-          vbat: store.vbat,
-          latitude: store.latitude,
-          longitude: store.longitude,
-          gasResistance: store.GasResistance,
-          temperature: store.Temperature,
-          pressure: store.pressure,
-          humidity: store.humidity,
-          light: store.light,
-          temperature2: store.temperature2,
-          gyroscope: store.gyroscope,
-          accelerometer: store.accelerometer,
-          timestamp: store.timestamp,
-          random: store.random,
-          eccPubkey:
-            "E1B955AEDF34D18921E3DC2133F2B785BA4C40DBC1502A8BF6ECE674B80E25D8822C4686723BBC3CB4A58D881DE053A1444EE1873E5916907D2F8819ECC7A1B6",
-        },
+        latitude: store.latitude,
+        longitude: store.longitude,
+
+        temperature: store.genColumnData(0),
+        gasResistance: store.genColumnData(1),
+        snr: store.genColumnData(2),
+        vbat: store.genColumnData(3),
+        pressure: store.genColumnData(4),
+        humidity: store.genColumnData(5),
+        light: store.genColumnData(6),
+        temperature2: store.genColumnData(7),
+        timestamp: store.genColumnData(8),
+        random: store.genColumnData(9),
+
+        gyroscope: store.gyroscope,
+        accelerometer: store.accelerometer,
+        eccPubkey:
+          "E1B955AEDF34D18921E3DC2133F2B785BA4C40DBC1502A8BF6ECE674B80E25D8822C4686723BBC3CB4A58D881DE053A1444EE1873E5916907D2F8819ECC7A1B6",
       }
+      console.log(testSENSORDATA)
       try {
         store.transmitLoading = true
         const response = await axios.post("/api/push", {
-          data: JSON.stringify(testSENSORDATA.message),
+          data: JSON.stringify(testSENSORDATA),
           imei: imei,
           privateKey: privateKey,
         })
@@ -154,6 +157,7 @@ const Home: BlitzPage = observer(() => {
     onValueInputChange(e: any, index: number) {
       if (/^[1-9]\d*$/.test(e.target.value)) {
         store.columnTypes[index]!.value.value = e.target.value
+        console.log(store.columnTypes[index])
       }
       store.checckButtonEnable()
     },
@@ -294,7 +298,7 @@ const Home: BlitzPage = observer(() => {
                   <Flex
                     direction="column"
                     mt="20px"
-                    height="100px"
+                    height="120px"
                     w="800px"
                     border="1px solid gray"
                     shadow="md"
