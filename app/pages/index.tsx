@@ -19,6 +19,7 @@ import {
 import { SettingsIcon } from "@chakra-ui/icons"
 import { BinPackage, SensorData } from "app/protogen/pebble"
 import { InputPrivateKeyDialog } from "app/components/InputPrivateKey"
+import toast from "react-hot-toast"
 
 const RandomValue = "Random Value"
 const ConstValue = "Const Value"
@@ -84,12 +85,13 @@ const Home: BlitzPage = observer(() => {
 
   const store = useLocalObservable(() => ({
     inputPrivateKeyDialogVisible: false,
+    transmitLoading: false,
     columnEnables: Array(16).fill(true) as boolean[],
     formatType: null as unknown as string,
     gpsRoute: "",
     columnTypes: COLUMN_TYPES,
     rows: "100",
-    async pushData() {
+    async pushData(privateKey: string) {
       const testSENSORDATA = {
         message: {
           snr: 19,
@@ -114,21 +116,24 @@ const Home: BlitzPage = observer(() => {
           s: "ACF44E758925A2454DB1880B31A3B1B11EEAE9BCEE67C423DADF8510B1A244CC",
         },
       }
-      const sensorData = SensorData.create(testSENSORDATA.message)
-      const data = SensorData.encode(sensorData)
-      const timestamp = new Date().getTime()
-      const type = BinPackage.PackageType.DATA
-      const binPackage = BinPackage.create({
-        type: type,
-        data: data.finish(),
-        timestamp: timestamp,
-        signature: new Uint8Array(),
-      })
-      const payload = BinPackage.encode(binPackage)
-      // device.subscribe("device/${imei}/data")
-      // device.publish("device/${imei}/data", payload.bytes())
-      const response = await axios.post("/api/push", { data: JSON.stringify(testSENSORDATA) })
-      console.log(response)
+      try {
+        store.transmitLoading = true
+        const response = await axios.post("/api/push", {
+          data: JSON.stringify(testSENSORDATA.message),
+          imei: "103381234567400",
+          privateKey: privateKey,
+        })
+        store.transmitLoading = false
+        console.log(response)
+        if (response.data.success) {
+          toast.success("Transmit Success")
+        } else {
+          toast.error(response.data.msg)
+        }
+      } catch (error) {
+        toast.error(error)
+        store.transmitLoading = false
+      }
     },
     transmit() {
       store.inputPrivateKeyDialogVisible = true
@@ -1072,7 +1077,13 @@ const Home: BlitzPage = observer(() => {
           <Button color="white" background="brandColor" onClick={store.generate}>
             Generate && Save
           </Button>
-          <Button ml="15px" color="white" background="brandColor" onClick={store.pushData}>
+          <Button
+            isLoading={store.transmitLoading}
+            ml="15px"
+            color="white"
+            background="brandColor"
+            onClick={store.transmit}
+          >
             Transmit
           </Button>
         </Flex>
@@ -1083,7 +1094,7 @@ const Home: BlitzPage = observer(() => {
           store.inputPrivateKeyDialogVisible = false
         }}
         onInputPrivateKeySuccess={(privateKey) => {
-          console.log(privateKey)
+          store.pushData(privateKey)
         }}
       ></InputPrivateKeyDialog>
     </Box>
