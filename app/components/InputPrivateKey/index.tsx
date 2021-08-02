@@ -29,8 +29,8 @@ export const InputPrivateKeyDialog = observer((props: IComponentProps) => {
   const color = useColorModeValue("#000000D9", "white")
   const store = useLocalStore(() => ({
     buttonDisable: true,
-    imei: "103381234567400",
-    privateKey: "af014862975162497bced9988518955bdc372fc3f545c25c9bf315f5c3b3c82a",
+    imei: "",
+    privateKey: "",
     colseModal() {
       store.reset()
       onClose()
