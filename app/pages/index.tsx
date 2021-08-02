@@ -17,6 +17,7 @@ import {
 import { SettingsIcon } from "@chakra-ui/icons"
 import { InputPrivateKeyDialog } from "app/components/InputPrivateKey"
 import toast from "react-hot-toast"
+import { array } from "zod"
 
 const RandomValue = "Random Value"
 const ConstValue = "Const Value"
@@ -147,7 +148,7 @@ const Home: BlitzPage = observer(() => {
       }
       return null
     },
-    async pushData(privateKey: string, imei: string) {
+    genPushData() {
       const data = {
         latitude: store.latitude,
         longitude: store.longitude,
@@ -164,6 +165,10 @@ const Home: BlitzPage = observer(() => {
         gyroscope: store.genGyroscope(),
         accelerometer: store.genAccelerometer(),
       }
+      return data
+    },
+    async pushData(privateKey: string, imei: string) {
+      const data = store.genPushData()
       const filterData = removeNull(data)
       console.log(filterData)
       try {
@@ -190,7 +195,18 @@ const Home: BlitzPage = observer(() => {
     },
     generate() {
       // store.inputPrivateKeyDialogVisible = true
-      store.export_csv(["aaa", "bbb", "ccc"], "test-csv")
+      if (store.formatType === "JSON") {
+        const data = store.genPushData()
+        const rows = parseInt(store.rows)
+        const genData = Array(rows).fill(JSON.stringify(data))
+        store.saveJSON(genData, "generate.json")
+      }
+      if (store.formatType === "CSV") {
+        const data = store.genPushData()
+        const rows = parseInt(store.rows)
+        const genData = Array(rows).fill(JSON.stringify(data))
+        store.export_csv(genData, "generate")
+      }
     },
     onRandomOrConst(e: any, col: number) {
       store.columnTypes[col - 1]!.random = e.target.value === RandomValue
@@ -380,6 +396,40 @@ const Home: BlitzPage = observer(() => {
       document.body.appendChild(downloadLink)
       downloadLink.click()
       document.body.removeChild(downloadLink)
+    },
+
+    saveJSON(data: any, filename: string) {
+      if (!data) {
+        return
+      }
+      if (!filename) filename = "generate.json"
+      if (typeof data === "object") {
+        data = JSON.stringify(data, undefined, 4)
+      }
+      var blob = new Blob([data], { type: "text/json" }),
+        e = document.createEvent("MouseEvents"),
+        a = document.createElement("a")
+      a.download = filename
+      a.href = window.URL.createObjectURL(blob)
+      a.dataset.downloadurl = ["text/json", a.download, a.href].join(":")
+      e.initMouseEvent(
+        "click",
+        true,
+        false,
+        window,
+        0,
+        0,
+        0,
+        0,
+        0,
+        false,
+        false,
+        false,
+        false,
+        0,
+        null
+      )
+      a.dispatchEvent(e)
     },
     onEnableChanges(column: number) {
       if (column > 12) {
