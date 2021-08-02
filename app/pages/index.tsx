@@ -21,6 +21,21 @@ import toast from "react-hot-toast"
 const RandomValue = "Random Value"
 const ConstValue = "Const Value"
 
+function removeNull(option: object) {
+  if (!option) {
+    return
+  }
+  for (var attr in option) {
+    if (option[attr] === null) {
+      delete option[attr]
+      continue
+    }
+    if (typeof option[attr] == "object") {
+      removeNull(option[attr])
+    }
+  }
+}
+
 const Home: BlitzPage = observer(() => {
   const GPSROUTES = [
     { name: "ROME-MILAN", id: 0, latitude: 20000, longitude: 2000 },
@@ -85,7 +100,7 @@ const Home: BlitzPage = observer(() => {
       return Math.floor(Math.random() * (m - n + 1)) + n
     },
     genColumnData(col: any) {
-      if (store.columnEnables[col]) {
+      if (store.columnEnables[col + 1]) {
         const d = store.columnTypes[col]!.random
           ? store.genRandom(store.columnTypes[col]!.value.max, store.columnTypes[col]!.value.min)
           : parseInt(store.columnTypes[col]!.value.value)
@@ -133,7 +148,7 @@ const Home: BlitzPage = observer(() => {
       return null
     },
     async pushData(privateKey: string, imei: string) {
-      const testSENSORDATA = {
+      const data = {
         latitude: store.latitude,
         longitude: store.longitude,
         temperature: store.genColumnData(0),
@@ -149,25 +164,26 @@ const Home: BlitzPage = observer(() => {
         gyroscope: store.genGyroscope(),
         accelerometer: store.genAccelerometer(),
       }
-      console.log(testSENSORDATA)
-      // try {
-      //   store.transmitLoading = true
-      //   const response = await axios.post("/api/push", {
-      //     data: JSON.stringify(testSENSORDATA),
-      //     imei: imei,
-      //     privateKey: privateKey,
-      //   })
-      //   store.transmitLoading = false
-      //   console.log(response)
-      //   if (response.data.success) {
-      //     toast.success("Transmit Success")
-      //   } else {
-      //     toast.error(response.data.msg)
-      //   }
-      // } catch (error) {
-      //   toast.error(error)
-      //   store.transmitLoading = false
-      // }
+      const filterData = removeNull(data)
+      console.log(filterData)
+      try {
+        store.transmitLoading = true
+        const response = await axios.post("/api/push", {
+          data: JSON.stringify(filterData),
+          imei: imei,
+          privateKey: privateKey,
+        })
+        store.transmitLoading = false
+        console.log(response)
+        if (response.data.success) {
+          toast.success("Transmit Success")
+        } else {
+          toast.error(response.data.msg)
+        }
+      } catch (error) {
+        toast.error(error)
+        store.transmitLoading = false
+      }
     },
     transmit() {
       store.inputPrivateKeyDialogVisible = true
@@ -238,6 +254,7 @@ const Home: BlitzPage = observer(() => {
     onAccelerometeMaxInputChange(e: any, index: number) {
       if (/^[1-9]\d*$/.test(e.target.value)) {
         store.AccelerometerColumnTypes[index]!.value.max = e.target.value
+        console.log(store.AccelerometerColumnTypes)
       }
       store.checckButtonEnable()
     },
@@ -261,7 +278,7 @@ const Home: BlitzPage = observer(() => {
           // gps dont't need handle , it perfom defalut gps
         } else if (index >= 10) {
           // gyroscope && Accelerometer
-          if (index === 11) {
+          if (index === 10) {
             for (
               let gyroscopeIndex = 0;
               gyroscopeIndex < store.gyroscopeColumnTypes.length;
@@ -283,7 +300,6 @@ const Home: BlitzPage = observer(() => {
                 } else {
                   if (columnType.value.value.length > 0) {
                   } else {
-                    console.log(columnType.value.min, columnType.value.max)
                     store.buttonEnable = false
                     break
                   }
@@ -291,7 +307,7 @@ const Home: BlitzPage = observer(() => {
               }
             }
           }
-          if (index === 12) {
+          if (index === 11) {
             for (
               let accelerometerIndex = 0;
               accelerometerIndex < store.AccelerometerColumnTypes.length;
@@ -352,12 +368,8 @@ const Home: BlitzPage = observer(() => {
       }
     },
     onRowsChange(e: any) {
-      console.log(e.target.value)
-
       if (/^[1-9]\d*$/.test(e.target.value)) {
-        if (e.target.value === "") {
-          store.rows = e.target.value
-        }
+        store.rows = e.target.value
       }
     },
     export_csv: function (data: any, name: string) {
@@ -373,6 +385,8 @@ const Home: BlitzPage = observer(() => {
       if (column > 12) {
         return
       }
+      console.log(column)
+
       let columnEnable = store.columnEnables[column]
       store.columnEnables[column] = !columnEnable
       store.checckButtonEnable()
@@ -380,18 +394,13 @@ const Home: BlitzPage = observer(() => {
   }))
 
   return (
-    <Box
-      p="10px"
-      position="absolute"
-      left="50%"
-      minW="1000px"
-      justify="flex-end"
-      css={{ transform: "translateX(-50%)" }}
-    >
-      <Flex align="start" px="40px" justify="space-between">
+    <Box p="10px" minW="1000px">
+      <Flex justifyContent="center" justify="space-between">
         <Flex direction="column">
-          <Text fontSize="25px">Verifiable Iot Data &nbsp;</Text>
-          <Button
+          <Text align="center" fontSize="25px">
+            Verifiable Iot Data &nbsp;
+          </Text>
+          {/* <Button
             hidden={true}
             w="80px"
             leftIcon={<SettingsIcon />}
@@ -399,23 +408,21 @@ const Home: BlitzPage = observer(() => {
             color="white"
           >
             Load
-          </Button>
+          </Button> */}
         </Flex>
-        <IconButton aria-label="setting" icon={<SettingsIcon />}></IconButton>
+        {/* <IconButton aria-label="setting" icon={<SettingsIcon />}></IconButton> */}
       </Flex>
       <Flex direction="column" align="center">
         <Flex direction="column" justify="center" align="center">
           <Flex align="center">
-            <Text mr="10px" display="inline">
-              column 1
-            </Text>
+            <Box mr="10px">column 1</Box>
             <Flex
               direction="column"
               mt="20px"
               height="100px"
-              minW="800px"
               border="1px solid gray"
               shadow="md"
+              minW="800px"
               borderRadius="10px"
               h="160px"
             >
@@ -748,16 +755,7 @@ const Home: BlitzPage = observer(() => {
         </Flex>
       </Flex>
 
-      <Flex
-        mt="30px"
-        pb="40px"
-        position="absolute"
-        left="55%"
-        align="center"
-        justify="flex-start"
-        css={{ transform: "translateX(-50%)" }}
-        minW="800px"
-      >
+      <Flex mt="30px" pb="40px" align="center" justify="center" w="100%">
         <Flex align="center">
           <Text>
             # Rows:
@@ -791,7 +789,12 @@ const Home: BlitzPage = observer(() => {
           </Text>
         </Flex>
         <Flex ml="40px">
-          <Button color="white" background="brandColor" onClick={store.generate}>
+          <Button
+            color="white"
+            background="brandColor"
+            onClick={store.generate}
+            disabled={!store.buttonEnable || store.rows.length === 0 || store.formatType === null}
+          >
             Generate && Save
           </Button>
           <Button
