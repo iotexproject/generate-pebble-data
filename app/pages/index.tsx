@@ -180,7 +180,6 @@ const Home: BlitzPage = observer(() => {
           privateKey: privateKey,
         })
         store.transmitLoading = false
-        console.log(response)
         if (response.data.success) {
           toast.success("Transmit Success")
         } else {

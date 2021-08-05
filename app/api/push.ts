@@ -2,15 +2,16 @@ import { BlitzApiRequest, BlitzApiResponse } from "blitz"
 import { BinPackage, SensorData } from "app/protogen/pebble"
 import { MqttService } from "app/service"
 import { ecsign, sha256, setLengthLeft, toBuffer } from "ethereumjs-util"
+import _ from "lodash"
 
 const handler = async (req: BlitzApiRequest, res: BlitzApiResponse) => {
   const imei = req.body.imei
   const privateKey = req.body.privateKey
   const requestData: SensorData = JSON.parse(req.body.data)
-  console.log(requestData)
   const sensorData = SensorData.create(requestData)
+  console.log(sensorData)
   const data = Buffer.from(SensorData.encode(sensorData).finish())
-  const timestamp = new Date().getTime()
+  const timestamp = _.round(Date.now() / 1000)
   const type = BinPackage.PackageType.DATA
 
   const hash = sha256(
