@@ -72,7 +72,7 @@ export const InputPrivateKeyDialog = observer((props: IComponentProps) => {
       <ModalOverlay />
       <ModalContent w={{ base: "90%", md: "100%" }}>
         <ModalHeader borderBottom="1px" borderColor="borderLight">
-          Input Device Imei & private key
+          Config Device Info
         </ModalHeader>
         {/* <ModalCloseButton /> */}
         <ModalBody py="1.25rem" color="textPrimary" fontFamily="Roboto">
@@ -84,14 +84,14 @@ export const InputPrivateKeyDialog = observer((props: IComponentProps) => {
               direction={["column", "row"]}
             >
               <Text fontSize="sm" w="140px" mb={[2, 0]}>
-                Device Imei
+                Device IMEI
               </Text>
               <Input
                 onChange={(e) => {
                   store.onInputChange(e, 0)
                 }}
                 value={store.imei}
-                placeholder={"Imei"}
+                placeholder={"IMEI"}
                 size="sm"
               />
             </Flex>
@@ -102,7 +102,7 @@ export const InputPrivateKeyDialog = observer((props: IComponentProps) => {
               direction={["column", "row"]}
             >
               <Text fontSize="sm" w="140px" mb={[2, 0]}>
-                Device PrivateKey
+                Device Private Key
               </Text>
               <Input
                 onChange={(e) => {

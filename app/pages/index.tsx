@@ -448,7 +448,7 @@ const Home: BlitzPage = observer(() => {
       <Flex justifyContent="center" justify="space-between">
         <Flex direction="column">
           <Text align="center" fontSize="25px">
-            Verifiable Iot Data &nbsp;
+            Trustream Data Generator &nbsp;
           </Text>
           {/* <Button
             hidden={true}
@@ -465,7 +465,6 @@ const Home: BlitzPage = observer(() => {
       <Flex direction="column" align="center">
         <Flex direction="column" justify="center" align="center">
           <Flex align="center">
-            <Box mr="10px">column 1</Box>
             <Flex
               direction="column"
               mt="20px"
@@ -512,7 +511,6 @@ const Home: BlitzPage = observer(() => {
             return (
               <Box key={index}>
                 <Flex align="center">
-                  <Text mr="10px">column {index + 2}</Text>
                   <Flex
                     direction="column"
                     mt="20px"
@@ -604,7 +602,6 @@ const Home: BlitzPage = observer(() => {
           })}
 
           <Flex align="center">
-            <Text mr="10px">column 11</Text>
             <Flex
               direction="column"
               mt="20px"
@@ -705,7 +702,6 @@ const Home: BlitzPage = observer(() => {
         </Flex>
 
         <Flex align="center">
-          <Text mr="10px">column 12</Text>
           <Flex
             direction="column"
             mt="20px"
@@ -845,7 +841,7 @@ const Home: BlitzPage = observer(() => {
             onClick={store.generate}
             disabled={!store.buttonEnable || store.rows.length === 0 || store.formatType === null}
           >
-            Generate && Save
+            Generate & Download
           </Button>
           <Button
             disabled={!store.buttonEnable}
@@ -855,7 +851,7 @@ const Home: BlitzPage = observer(() => {
             background="brandColor"
             onClick={store.transmit}
           >
-            Transmit
+            Submit to Trustream
           </Button>
         </Flex>
       </Flex>
