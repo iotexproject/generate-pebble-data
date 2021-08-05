@@ -35,6 +35,7 @@ function removeNull(option: object) {
       removeNull(option[attr])
     }
   }
+  return option
 }
 
 const Home: BlitzPage = observer(() => {
@@ -105,7 +106,7 @@ const Home: BlitzPage = observer(() => {
         const d = store.columnTypes[col]!.random
           ? store.genRandom(store.columnTypes[col]!.value.max, store.columnTypes[col]!.value.min)
           : parseInt(store.columnTypes[col]!.value.value)
-        return d
+        return `${d}`
       }
       return null
     },
@@ -170,7 +171,7 @@ const Home: BlitzPage = observer(() => {
     async pushData(privateKey: string, imei: string) {
       const data = store.genPushData()
       const filterData = removeNull(data)
-      console.log(filterData)
+      console.log("filterData", filterData)
       try {
         store.transmitLoading = true
         const response = await axios.post("/api/push", {
