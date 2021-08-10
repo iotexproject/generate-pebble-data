@@ -4,6 +4,7 @@ import Layout from "app/core/layouts/Layout"
 import { observer, useLocalObservable } from "mobx-react-lite"
 import { axios } from "app/lib/axios"
 import XLSX from "xlsx"
+import { gpsRoutes } from "../gpsRoutes/index"
 import {
   Box,
   Button,
@@ -40,12 +41,6 @@ function removeNull(option: object) {
 }
 
 const Home: BlitzPage = observer(() => {
-  const GPSROUTES = [
-    { name: "ROME-MILAN", id: 0, latitude: 20000, longitude: 2000 },
-    { name: "ROME-MILAN2", id: 1, latitude: 20001, longitude: 2001 },
-    { name: "ROME-MILAN3", id: 2, latitude: 20002, longitude: 2002 },
-  ]
-
   const RandomORConstValue = [
     { name: RandomValue, id: 1 },
     { name: ConstValue, id: 2 },
@@ -58,8 +53,8 @@ const Home: BlitzPage = observer(() => {
     buttonEnable: true,
     columnEnables: Array(12).fill(true) as boolean[],
     formatType: null as unknown as string,
-    latitude: GPSROUTES[0]!.latitude,
-    longitude: GPSROUTES[0]!.longitude,
+    latitude: gpsRoutes[0]!.latitude,
+    longitude: gpsRoutes[0]!.longitude,
     gyroscope: [],
     accelerometer: [],
     random: "",
@@ -248,7 +243,7 @@ const Home: BlitzPage = observer(() => {
       store.checckButtonEnable()
     },
     onGPSChange(e: any) {
-      const route = GPSROUTES[e.target.value]
+      const route = gpsRoutes[e.target.value]
       console.log(route)
       store.latitude = route!.latitude
       store.longitude = route!.longitude
@@ -574,9 +569,9 @@ const Home: BlitzPage = observer(() => {
                 }}
                 w="50%"
                 mt="20px"
-                placeholder={GPSROUTES[0]?.name}
+                placeholder={gpsRoutes[0]?.name}
               >
-                {GPSROUTES.map((item, index) => {
+                {gpsRoutes.map((item, index) => {
                   return (
                     <option key={item.id} value={item.id}>
                       {item.name}
