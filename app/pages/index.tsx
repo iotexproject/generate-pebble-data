@@ -3,6 +3,7 @@ import { Link, BlitzPage, useMutation, Routes } from "blitz"
 import Layout from "app/core/layouts/Layout"
 import { observer, useLocalObservable } from "mobx-react-lite"
 import { axios } from "app/lib/axios"
+import XLSX from "xlsx"
 import {
   Box,
   Button,
@@ -97,15 +98,15 @@ const Home: BlitzPage = observer(() => {
     ],
     rows: "100",
     genRandom(nn: string, mm: string) {
-      const n = parseInt(nn)
-      const m = parseInt(mm)
+      const n = parseFloat(nn)
+      const m = parseFloat(mm)
       return Math.floor(Math.random() * (m - n + 1)) + n
     },
     genColumnData(col: any) {
       if (store.columnEnables[col + 1]) {
         const d = store.columnTypes[col]!.random
           ? store.genRandom(store.columnTypes[col]!.value.max, store.columnTypes[col]!.value.min)
-          : parseInt(store.columnTypes[col]!.value.value)
+          : parseFloat(store.columnTypes[col]!.value.value)
         return `${d}`
       }
       return null
@@ -123,7 +124,7 @@ const Home: BlitzPage = observer(() => {
                 store.gyroscopeColumnTypes[index]!.value.max,
                 store.gyroscopeColumnTypes[index]!.value.min
               )
-            : parseInt(store.gyroscopeColumnTypes[index]!.value.value)
+            : parseFloat(store.gyroscopeColumnTypes[index]!.value.value)
           array.push(d)
         }
         return array
@@ -142,7 +143,7 @@ const Home: BlitzPage = observer(() => {
                 store.AccelerometerColumnTypes[index]!.value.max,
                 store.AccelerometerColumnTypes[index]!.value.min
               )
-            : parseInt(store.AccelerometerColumnTypes[index]!.value.value)
+            : parseFloat(store.AccelerometerColumnTypes[index]!.value.value)
           array.push(d)
         }
         return array
@@ -163,8 +164,8 @@ const Home: BlitzPage = observer(() => {
         temperature2: store.genColumnData(7),
         timestamp: new Date().getTime(),
         random: store.genColumnData(8),
-        gyroscope: store.genGyroscope(),
-        accelerometer: store.genAccelerometer(),
+        gyroscope: store.genGyroscope() as any,
+        accelerometer: store.genAccelerometer() as any,
       }
       return data
     },
@@ -204,8 +205,33 @@ const Home: BlitzPage = observer(() => {
       if (store.formatType === "CSV") {
         const data = store.genPushData()
         const rows = parseInt(store.rows)
-        const genData = Array(rows).fill(JSON.stringify(data))
-        store.export_csv(genData, "generate")
+        // const genData = Array(rows).fill(data)
+        let genData = new Array<Array<any>>()
+        for (let index = 0; index < rows; index++) {
+          var arr = []
+          for (const key in data) {
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+              const element = data[key]
+              if (Array.isArray(element)) {
+                //@ts-ignore
+                arr.push(element.join(","))
+              } else {
+                //@ts-ignore
+                arr.push(element)
+              }
+            }
+          }
+          genData.push(arr)
+        }
+        genData.unshift(Object.keys(data))
+        var filename = "export.csv" //文件名称
+        var ws_name = "Sheet1" //Excel第一个sheet的名称
+        var wb = XLSX.utils.book_new()
+        console.log(genData)
+
+        var ws = XLSX.utils.aoa_to_sheet(genData)
+        XLSX.utils.book_append_sheet(wb, ws, ws_name) //将数据添加到工作薄
+        XLSX.writeFile(wb, filename) //导出Exce
       }
     },
     onRandomOrConst(e: any, col: number) {
@@ -228,60 +254,58 @@ const Home: BlitzPage = observer(() => {
       store.longitude = route!.longitude
     },
     onMaxInputChange(e: any, index: number) {
-      if (/^[1-9]\d*$/.test(e.target.value)) {
+      if (!isNaN(Number(e.target.value))) {
         store.columnTypes[index]!.value.max = e.target.value
       }
       store.checckButtonEnable()
     },
     onMinInputChange(e: any, index: number) {
       if (index < 10) {
-        if (/^[1-9]\d*$/.test(e.target.value)) {
+        if (!isNaN(Number(e.target.value))) {
           store.columnTypes[index]!.value.min = e.target.value
         }
       }
       store.checckButtonEnable()
     },
     onValueInputChange(e: any, index: number) {
-      if (/^[1-9]\d*$/.test(e.target.value)) {
+      if (!isNaN(Number(e.target.value))) {
         store.columnTypes[index]!.value.value = e.target.value
-        console.log(store.columnTypes[index])
       }
       store.checckButtonEnable()
     },
 
     onGyroscopeMaxInputChange(e: any, index: number) {
-      if (/^[1-9]\d*$/.test(e.target.value)) {
+      if (!isNaN(Number(e.target.value))) {
         store.gyroscopeColumnTypes[index]!.value.max = e.target.value
       }
       store.checckButtonEnable()
     },
     onGyroscopeMinInputChange(e: any, index: number) {
-      if (/^[1-9]\d*$/.test(e.target.value)) {
+      if (!isNaN(Number(e.target.value))) {
         store.gyroscopeColumnTypes[index]!.value.min = e.target.value
       }
       store.checckButtonEnable()
     },
     onGyroscopeInputChange(e: any, index: number) {
-      if (/^[1-9]\d*$/.test(e.target.value)) {
+      if (!isNaN(Number(e.target.value))) {
         store.gyroscopeColumnTypes[index]!.value.value = e.target.value
       }
       store.checckButtonEnable()
     },
     onAccelerometeMaxInputChange(e: any, index: number) {
-      if (/^[1-9]\d*$/.test(e.target.value)) {
+      if (!isNaN(Number(e.target.value))) {
         store.AccelerometerColumnTypes[index]!.value.max = e.target.value
-        console.log(store.AccelerometerColumnTypes)
       }
       store.checckButtonEnable()
     },
     onAccelerometerMinInputChange(e: any, index: number) {
-      if (/^[1-9]\d*$/.test(e.target.value)) {
+      if (!isNaN(Number(e.target.value))) {
         store.AccelerometerColumnTypes[index]!.value.min = e.target.value
       }
       store.checckButtonEnable()
     },
     onAccelerometeInputChange(e: any, index: number) {
-      if (/^[1-9]\d*$/.test(e.target.value)) {
+      if (!isNaN(Number(e.target.value))) {
         store.AccelerometerColumnTypes[index]!.value.value = e.target.value
       }
       store.checckButtonEnable()
@@ -306,7 +330,7 @@ const Home: BlitzPage = observer(() => {
                   if (
                     columnType.value.min.length > 0 &&
                     columnType.value.max.length > 0 &&
-                    parseInt(columnType.value.max) > parseInt(columnType.value.min)
+                    parseFloat(columnType.value.max) > parseFloat(columnType.value.min)
                   ) {
                   } else {
                     console.log(columnType.value.min, columnType.value.max)
@@ -335,7 +359,7 @@ const Home: BlitzPage = observer(() => {
                   if (
                     columnType.value.min.length > 0 &&
                     columnType.value.max.length > 0 &&
-                    parseInt(columnType.value.max) > parseInt(columnType.value.min)
+                    parseFloat(columnType.value.max) > parseFloat(columnType.value.min)
                   ) {
                   } else {
                     console.log(columnType.value.min, columnType.value.max)
@@ -356,7 +380,6 @@ const Home: BlitzPage = observer(() => {
         } else {
           // 1 - 9
           // Temperature - random
-          console.log(index)
 
           const columnType = store.columnTypes[index - 1]!
           if (enable === true) {
@@ -364,7 +387,7 @@ const Home: BlitzPage = observer(() => {
               if (
                 columnType.value.min.length > 0 &&
                 columnType.value.max.length > 0 &&
-                parseInt(columnType.value.max) > parseInt(columnType.value.min)
+                parseFloat(columnType.value.max) > parseFloat(columnType.value.min)
               ) {
               } else {
                 console.log(columnType.value.min, columnType.value.max)
@@ -396,6 +419,62 @@ const Home: BlitzPage = observer(() => {
       document.body.appendChild(downloadLink)
       downloadLink.click()
       document.body.removeChild(downloadLink)
+    },
+
+    exportCsv(headers: Array<any>, rows: any, filename: string) {
+      if (Array.isArray(headers) && headers.length > 0) {
+        //表头信息不能为空
+        if (!filename || typeof filename != "string") {
+          filename = "export.csv"
+        }
+        console.log(headers, rows, filename)
+
+        let blob = store.getCsvBlob(headers, rows)
+        let url = URL.createObjectURL(blob)
+        let downloadLink = document.createElement("a")
+        downloadLink.href = url
+        downloadLink.download = filename
+        document.body.appendChild(downloadLink)
+        downloadLink.click()
+        document.body.removeChild(downloadLink)
+        URL.revokeObjectURL(url)
+      }
+    },
+
+    getCsvBlob(headers, rows) {
+      const BOM = "\uFEFF"
+      let columnDelimiter = "," //默认列分隔符','
+      let rowDelimiter = "\r\n" //默认行分隔符 '\r\n'
+      let csv = headers.reduce((previous, header) => {
+        return (previous ? previous + columnDelimiter : "") + (header.title || header.column)
+      }, "")
+      if (Array.isArray(rows) && rows.length > 0) {
+        let columns = headers.map((header) => header.column)
+        csv = rows.reduce((previous, row) => {
+          let rowCsv = columns.reduce((pre, column) => {
+            if (row.hasOwnProperty(column)) {
+              let cell = row[column]
+              if (cell != null) {
+                let header = headers.find((item) => item.column == column)
+                if (header.formatter != null && typeof header.formatter == "function") {
+                  cell = header.formatter(cell)
+                }
+                if (cell != null) {
+                  cell = cell.toString().replace(new RegExp(rowDelimiter, "g"), " ") // 若数据中本来就含行分隔符，则用' '替换
+                  cell = new RegExp(columnDelimiter).test(cell) ? `"${cell}"` : cell //若数据中本来就含列分隔符，则用""包起来
+                  return pre ? pre + columnDelimiter + cell : pre + cell
+                }
+              }
+              return pre ? pre + columnDelimiter : pre + " " //reduce初始值为''，故第一次迭代时不会在行首加列分隔符。后面的遇到值为空或不存在的列要填充含空格的空白" ",则pre返回true，会加列分隔符
+            } else {
+              return pre ? pre + columnDelimiter : pre + " " //即使不存在该列也要填充空白，避免数据和表头错位不对应
+            }
+          }, "")
+          return previous + rowDelimiter + rowCsv
+        }, csv)
+      }
+      let blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" })
+      return blob
     },
 
     saveJSON(data: any, filename: string) {
