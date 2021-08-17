@@ -622,7 +622,7 @@ const Home: BlitzPage = observer(() => {
               <DateTimePicker
                 formatStyle="small"
                 value={store.startTime}
-                label="EndTime"
+                label="StartTime"
                 locale="en-US"
                 onChange={store.onChangeStartTime}
                 style={{ maxWidth: "45%", textAlign: "left" }}
@@ -630,7 +630,7 @@ const Home: BlitzPage = observer(() => {
               <DateTimePicker
                 formatStyle="small"
                 value={store.endTime}
-                label="StartTime"
+                label="EndTime"
                 locale="en-US"
                 onChange={store.onChangeEndTime}
                 style={{ maxWidth: "45%", textAlign: "left" }}
