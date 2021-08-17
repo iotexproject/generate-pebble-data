@@ -16,7 +16,7 @@ import {
   useColorModeValue,
   Divider,
 } from "@chakra-ui/react"
-import { observer, useLocalStore } from "mobx-react-lite"
+import { observer, useLocalObservable } from "mobx-react-lite"
 
 interface IComponentProps {
   isOpen?: any
@@ -27,7 +27,7 @@ interface IComponentProps {
 export const InputPrivateKeyDialog = observer((props: IComponentProps) => {
   const { isOpen, onClose, onInputPrivateKeySuccess } = props
   const color = useColorModeValue("#000000D9", "white")
-  const store = useLocalStore(() => ({
+  const store = useLocalObservable(() => ({
     buttonDisable: true,
     imei: "",
     privateKey: "",

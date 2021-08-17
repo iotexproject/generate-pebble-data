@@ -1,6 +1,9 @@
 import { BlitzConfig, sessionMiddleware, simpleRolesIsAuthorized } from "blitz"
 
 const config: BlitzConfig = {
+  experimental: {
+    isomorphicResolverImports: true,
+  },
   middleware: [
     sessionMiddleware({
       cookiePrefix: "generate-pebble-data",

@@ -5,21 +5,11 @@ import { observer, useLocalObservable } from "mobx-react-lite"
 import { axios } from "app/lib/axios"
 import XLSX from "xlsx"
 import { gpsRoutes } from "../gpsRoutes/index"
-import {
-  Box,
-  Button,
-  Divider,
-  Flex,
-  IconButton,
-  Input,
-  Select,
-  Switch,
-  Text,
-} from "@chakra-ui/react"
-import { SettingsIcon } from "@chakra-ui/icons"
+import { Box, Button, Divider, Flex, Input, Select, Switch, Text } from "@chakra-ui/react"
 import { InputPrivateKeyDialog } from "app/components/InputPrivateKey"
 import toast from "react-hot-toast"
-import { array } from "zod"
+import { DateTimePicker } from "react-rainbow-components"
+import moment from "moment"
 
 const RandomValue = "Random Value"
 const ConstValue = "Const Value"
@@ -53,11 +43,12 @@ const Home: BlitzPage = observer(() => {
     buttonEnable: true,
     columnEnables: Array(12).fill(true) as boolean[],
     formatType: null as unknown as string,
-    latitude: gpsRoutes[0]!.latitude,
-    longitude: gpsRoutes[0]!.longitude,
+    coordinates: gpsRoutes[0]?.coordinates,
     gyroscope: [],
     accelerometer: [],
     random: "",
+    startTime: moment(new Date()).subtract(7, "d").format("YYYY-MM-DD HH:mm:ss"),
+    endTime: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
     columnTypes: [
       { random: true, value: { max: "40", min: "20", value: "20" } },
       { random: true, value: { max: "40", min: "20", value: "20" } },
@@ -91,7 +82,8 @@ const Home: BlitzPage = observer(() => {
       "temperature2",
       "random",
     ],
-    rows: "100",
+    rows: gpsRoutes[0]?.coordinates.length,
+    gpsRoute: 0,
     genRandom(nn: string, mm: string) {
       const n = parseFloat(nn)
       const m = parseFloat(mm)
@@ -145,10 +137,13 @@ const Home: BlitzPage = observer(() => {
       }
       return null
     },
-    genPushData() {
+    genPushData(index) {
+      const diff =
+        (moment(store.endTime).unix() - moment(store.startTime).unix()) / Number(store.rows)
+      console.log("rows", diff, moment(store.endTime).unix(), moment(store.startTime).unix())
       const data = {
-        latitude: store.latitude,
-        longitude: store.longitude,
+        latitude: store.coordinates[index][1],
+        longitude: store.coordinates[index][0],
         temperature: store.genColumnData(0),
         gasResistance: store.genColumnData(1),
         snr: store.genColumnData(2),
@@ -157,7 +152,7 @@ const Home: BlitzPage = observer(() => {
         humidity: store.genColumnData(5),
         light: store.genColumnData(6),
         temperature2: store.genColumnData(7),
-        timestamp: new Date().getTime(),
+        timestamp: `${moment(store.startTime).unix() + diff * index}`,
         random: store.genColumnData(8),
         gyroscope: store.genGyroscope() as any,
         accelerometer: store.genAccelerometer() as any,
@@ -190,20 +185,28 @@ const Home: BlitzPage = observer(() => {
       store.inputPrivateKeyDialogVisible = true
     },
     generate() {
-      // store.inputPrivateKeyDialogVisible = true
       if (store.formatType === "JSON") {
-        const data = store.genPushData()
-        const rows = parseInt(store.rows)
-        const genData = Array(rows).fill(JSON.stringify(data))
-        store.saveJSON(genData, "generate.json")
+        const rows = Number(store.rows)
+        let genData = new Array()
+        for (let index = 0; index < rows; index++) {
+          var arr = []
+          const data = store.genPushData(index)
+          genData.push(data)
+        }
+        store.saveJSON(
+          genData,
+          `${moment(store.startTime).format("YYYY/MM/DD")}-${moment(store.endTime).format(
+            "YYYY/MM/DD"
+          )}.json`
+        )
       }
       if (store.formatType === "CSV") {
-        const data = store.genPushData()
-        const rows = parseInt(store.rows)
+        const rows = Number(store.rows)
         // const genData = Array(rows).fill(data)
         let genData = new Array<Array<any>>()
         for (let index = 0; index < rows; index++) {
           var arr = []
+          const data = store.genPushData(index)
           for (const key in data) {
             if (Object.prototype.hasOwnProperty.call(data, key)) {
               const element = data[key]
@@ -218,12 +221,14 @@ const Home: BlitzPage = observer(() => {
           }
           genData.push(arr)
         }
+        const data = store.genPushData(0)
         genData.unshift(Object.keys(data))
-        var filename = "export.csv" //文件名称
+        var filename = `${moment(store.startTime).format("YYYY/MM/DD")}-${moment(
+          store.endTime
+        ).format("YYYY/MM/DD")}.csv` //文件名称
         var ws_name = "Sheet1" //Excel第一个sheet的名称
         var wb = XLSX.utils.book_new()
         console.log(genData)
-
         var ws = XLSX.utils.aoa_to_sheet(genData)
         XLSX.utils.book_append_sheet(wb, ws, ws_name) //将数据添加到工作薄
         XLSX.writeFile(wb, filename) //导出Exce
@@ -243,10 +248,9 @@ const Home: BlitzPage = observer(() => {
       store.checckButtonEnable()
     },
     onGPSChange(e: any) {
-      const route = gpsRoutes[e.target.value]
-      console.log(route)
-      store.latitude = route!.latitude
-      store.longitude = route!.longitude
+      store.coordinates = gpsRoutes[e.target.value]?.coordinates
+      store.rows = store.coordinates?.length
+      store.gpsRoute = e.target.value
     },
     onMaxInputChange(e: any, index: number) {
       if (!isNaN(Number(e.target.value))) {
@@ -515,106 +519,198 @@ const Home: BlitzPage = observer(() => {
       store.columnEnables[column] = !columnEnable
       store.checckButtonEnable()
     },
+    onChangeStartTime(value) {
+      console.log("Selected start Time: ", value)
+      store.startTime = value
+    },
+    onChangeEndTime(value) {
+      console.log("Selected end Time: ", value)
+      store.endTime = value
+    },
   }))
 
   return (
-    <Box p="10px" minW="1000px">
-      <Flex justifyContent="center" justify="space-between">
-        <Flex direction="column">
-          <Text align="center" fontSize="25px">
-            Trustream Data Generator &nbsp;
+    <Box px="2.5vw" minW="1000px" pb="10vw">
+      <Text align="center" fontSize="25px">
+        Trustream Data Generator &nbsp;
+      </Text>
+      <Flex mt="30px" align="center" justify="center" w="100%" justifyContent="space-between">
+        <Flex align="center">
+          <Text fontSize="1rem" fontWeight="semibold" mr="10px">
+            Rows:
           </Text>
-          {/* <Button
-            hidden={true}
-            w="80px"
-            leftIcon={<SettingsIcon />}
-            background="brandColor"
-            color="white"
+          <Input
+            w="100px"
+            value={store.rows}
+            onChange={(e) => {
+              store.onRowsChange(e)
+            }}
+            placeholder="20"
+          />
+          <Text fontSize="1rem" fontWeight="semibold" ml="20px" mr="10px">
+            Format:
+          </Text>
+          <Select
+            display="inline-block"
+            w="200px"
+            onChange={(e) => {
+              store.formatType = e.target.value
+            }}
+            placeholder="select type"
           >
-            Load
-          </Button> */}
+            <option value="JSON">JSON</option>
+            <option value="CSV">CSV</option>
+          </Select>
         </Flex>
-        {/* <IconButton aria-label="setting" icon={<SettingsIcon />}></IconButton> */}
+        <Flex ml="40px">
+          <Button
+            color="white"
+            background="brandColor"
+            onClick={store.generate}
+            disabled={!store.buttonEnable || store.rows === 0 || store.formatType === null}
+          >
+            Generate & Download
+          </Button>
+          <Button
+            disabled={!store.buttonEnable}
+            isLoading={store.transmitLoading}
+            ml="15px"
+            color="white"
+            background="brandColor"
+            onClick={store.transmit}
+          >
+            Submit to Trustream
+          </Button>
+        </Flex>
       </Flex>
-      <Flex direction="column" align="center">
-        <Flex direction="column" justify="center" align="center">
-          <Flex align="center">
-            <Flex
-              direction="column"
-              mt="20px"
-              height="100px"
-              border="1px solid gray"
-              shadow="md"
-              minW="800px"
-              borderRadius="10px"
-              h="160px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">GPS Route</Text>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(0)}
-                    defaultChecked={store.columnEnables[0]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
+      <Flex direction="row" align="center">
+        <Flex
+          direction="row"
+          justify="center"
+          align="center"
+          flexWrap="wrap"
+          justifyContent="space-between"
+        >
+          <Flex
+            direction="column"
+            mt="2rem"
+            height="100px"
+            border="1px solid gray"
+            shadow="md"
+            w="46vw"
+            borderRadius="10px"
+            h="160px"
+          >
+            <Flex p="10px" justify="space-between">
+              <Text fontSize="20px">TimeStamp</Text>
+              <Flex>
+                Enable
+                <Switch
+                  onChange={() => store.onEnableChanges(0)}
+                  defaultChecked={store.columnEnables[0]}
+                  colorScheme="teal"
+                  ml="5px"
+                ></Switch>
               </Flex>
-              <Divider />
-              <Select
-                ml="20px"
-                onChange={(e) => {
-                  store.onGPSChange(e)
-                }}
-                w="50%"
-                mt="20px"
-                placeholder={gpsRoutes[0]?.name}
-              >
-                {gpsRoutes.map((item, index) => {
-                  return (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  )
-                })}
-              </Select>
+            </Flex>
+            <Divider />
+            <Flex px="20px" pt="20px" justifyContent="space-between">
+              <DateTimePicker
+                formatStyle="small"
+                value={store.startTime}
+                label="EndTime"
+                locale="en-US"
+                onChange={store.onChangeStartTime}
+                style={{ maxWidth: "45%", textAlign: "left" }}
+              />
+              <DateTimePicker
+                formatStyle="small"
+                value={store.endTime}
+                label="StartTime"
+                locale="en-US"
+                onChange={store.onChangeEndTime}
+                style={{ maxWidth: "45%", textAlign: "left" }}
+              />
             </Flex>
           </Flex>
-          {store.columnItems.map((item, index) => {
-            return (
-              <Box key={index}>
-                <Flex align="center">
-                  <Flex
-                    direction="column"
-                    mt="20px"
-                    height="120px"
-                    minW="800px"
-                    border="1px solid gray"
-                    shadow="md"
-                    borderRadius="10px"
-                    h="160px"
-                  >
-                    <Flex p="10px" justify="space-between">
-                      <Text fontSize="20px">{item}</Text>
-                      <Flex>
-                        Enable
-                        <Switch
-                          onChange={() => store.onEnableChanges(index + 1)}
-                          defaultChecked={store.columnEnables[index + 1]}
-                          colorScheme="teal"
-                          ml="5px"
-                        ></Switch>
-                      </Flex>
-                    </Flex>
-                    <Divider />
-                    <Flex px="20px" pt="20px" justify="start" width="100%">
+          <Flex
+            direction="column"
+            mt="2rem"
+            height="100px"
+            border="1px solid gray"
+            shadow="md"
+            w="46vw"
+            borderRadius="10px"
+            h="160px"
+          >
+            <Flex p="10px" justify="space-between">
+              <Text fontSize="20px">GPS Route</Text>
+              <Flex>
+                Enable
+                <Switch
+                  onChange={() => store.onEnableChanges(0)}
+                  defaultChecked={store.columnEnables[0]}
+                  colorScheme="teal"
+                  ml="5px"
+                ></Switch>
+              </Flex>
+            </Flex>
+            <Divider />
+            <Select
+              ml="20px"
+              onChange={(e) => {
+                store.onGPSChange(e)
+              }}
+              w="50%"
+              mt="20px"
+              value={store.gpsRoute}
+            >
+              {gpsRoutes.map((item, index) => {
+                return (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                )
+              })}
+            </Select>
+          </Flex>
+          <Flex
+            direction="column"
+            mt="2rem"
+            pb="10px"
+            w="46vw"
+            border="1px solid gray"
+            shadow="md"
+            borderRadius="10px"
+          >
+            <Flex p="10px" justify="space-between">
+              <Text fontSize="20px">Gyroscope</Text>
+              <Flex>
+                Lock X-Y-Z
+                <Switch colorScheme="teal" ml="5px"></Switch>
+              </Flex>
+              <Flex>
+                Enable
+                <Switch
+                  onChange={() => store.onEnableChanges(10)}
+                  defaultChecked={store.columnEnables[10]}
+                  colorScheme="teal"
+                  ml="5px"
+                ></Switch>
+              </Flex>
+            </Flex>
+            <Divider />
+            <Flex width="100%">
+              <Flex direction="column" width="100%" px="20px">
+                {store.gyroscopeColumnTypes.map((item, index) => {
+                  return (
+                    <Flex key={index} pt="20px" justify="start" width="100%">
                       <Flex width="50%" align="start" direction="column">
-                        <Text>&nbsp;</Text>
+                        <Text ml="50px">{index === 0 ? "X" : index === 1 ? "Y" : "Z"}</Text>
                         <Select
                           mt="10px"
                           onChange={(e) => {
-                            store.onRandomOrConst(e, index + 1)
+                            store.onGyroscopeRandomOrConst(e, index)
                           }}
                           w="50%"
                         >
@@ -627,15 +723,15 @@ const Home: BlitzPage = observer(() => {
                           })}
                         </Select>
                       </Flex>
-                      {store.columnTypes[index]!.random ? (
+                      {store.gyroscopeColumnTypes[index]!.random ? (
                         <Flex justify="space-between">
                           <Flex width="25%" align="start" direction="column">
                             <Text>Min</Text>
                             <Input
                               onChange={(e) => {
-                                store.onMinInputChange(e, index)
+                                store.onGyroscopeMinInputChange(e, index)
                               }}
-                              value={store.columnTypes[index]!.value.min}
+                              value={store.gyroscopeColumnTypes[index]!.value.min}
                               mt="10px"
                               width="100px"
                               placeholder="20"
@@ -645,9 +741,9 @@ const Home: BlitzPage = observer(() => {
                             <Text>Max</Text>
                             <Input
                               onChange={(e) => {
-                                store.onMaxInputChange(e, index)
+                                store.onGyroscopeMaxInputChange(e, index)
                               }}
-                              value={store.columnTypes[index]!.value.max}
+                              value={store.gyroscopeColumnTypes[index]!.value.max}
                               mt="10px"
                               width="100px"
                               placeholder="20"
@@ -659,9 +755,9 @@ const Home: BlitzPage = observer(() => {
                           <Text>Value</Text>
                           <Input
                             onChange={(e) => {
-                              store.onValueInputChange(e, index)
+                              store.onGyroscopeInputChange(e, index)
                             }}
-                            value={store.columnTypes[index]!.value.value}
+                            value={store.gyroscopeColumnTypes[index]!.value.value}
                             mt="10px"
                             width="100px"
                             placeholder="20"
@@ -669,118 +765,17 @@ const Home: BlitzPage = observer(() => {
                         </Flex>
                       )}
                     </Flex>
-                  </Flex>
-                </Flex>
-              </Box>
-            )
-          })}
-
-          <Flex align="center">
-            <Flex
-              direction="column"
-              mt="20px"
-              pb="10px"
-              minW="800px"
-              border="1px solid gray"
-              shadow="md"
-              borderRadius="10px"
-            >
-              <Flex p="10px" justify="space-between">
-                <Text fontSize="20px">Gyroscope</Text>
-                <Flex>
-                  Lock X-Y-Z
-                  <Switch colorScheme="teal" ml="5px"></Switch>
-                </Flex>
-                <Flex>
-                  Enable
-                  <Switch
-                    onChange={() => store.onEnableChanges(10)}
-                    defaultChecked={store.columnEnables[10]}
-                    colorScheme="teal"
-                    ml="5px"
-                  ></Switch>
-                </Flex>
-              </Flex>
-              <Divider />
-              <Flex width="100%">
-                <Flex direction="column" width="100%" px="20px">
-                  {store.gyroscopeColumnTypes.map((item, index) => {
-                    return (
-                      <Flex key={index} pt="20px" justify="start" width="100%">
-                        <Flex width="50%" align="start" direction="column">
-                          <Text ml="50px">{index === 0 ? "X" : index === 1 ? "Y" : "Z"}</Text>
-                          <Select
-                            mt="10px"
-                            onChange={(e) => {
-                              store.onGyroscopeRandomOrConst(e, index)
-                            }}
-                            w="50%"
-                          >
-                            {RandomORConstValue.map((item, index) => {
-                              return (
-                                <option key={item.id} value={item.name}>
-                                  {item.name}
-                                </option>
-                              )
-                            })}
-                          </Select>
-                        </Flex>
-                        {store.gyroscopeColumnTypes[index]!.random ? (
-                          <Flex justify="space-between">
-                            <Flex width="25%" align="start" direction="column">
-                              <Text>Min</Text>
-                              <Input
-                                onChange={(e) => {
-                                  store.onGyroscopeMinInputChange(e, index)
-                                }}
-                                value={store.gyroscopeColumnTypes[index]!.value.min}
-                                mt="10px"
-                                width="100px"
-                                placeholder="20"
-                              />
-                            </Flex>
-                            <Flex width="25%" align="start" direction="column">
-                              <Text>Max</Text>
-                              <Input
-                                onChange={(e) => {
-                                  store.onGyroscopeMaxInputChange(e, index)
-                                }}
-                                value={store.gyroscopeColumnTypes[index]!.value.max}
-                                mt="10px"
-                                width="100px"
-                                placeholder="20"
-                              />
-                            </Flex>
-                          </Flex>
-                        ) : (
-                          <Flex width="50%" align="start" direction="column">
-                            <Text>Value</Text>
-                            <Input
-                              onChange={(e) => {
-                                store.onGyroscopeInputChange(e, index)
-                              }}
-                              value={store.gyroscopeColumnTypes[index]!.value.value}
-                              mt="10px"
-                              width="100px"
-                              placeholder="20"
-                            />
-                          </Flex>
-                        )}
-                      </Flex>
-                    )
-                  })}
-                </Flex>
+                  )
+                })}
               </Flex>
             </Flex>
           </Flex>
-        </Flex>
 
-        <Flex align="center">
           <Flex
             direction="column"
-            mt="20px"
+            mt="2rem"
             pb="10px"
-            minW="800px"
+            w="46vw"
             border="1px solid gray"
             shadow="md"
             borderRadius="10px"
@@ -872,61 +867,99 @@ const Home: BlitzPage = observer(() => {
               </Flex>
             </Flex>
           </Flex>
-        </Flex>
-      </Flex>
-
-      <Flex mt="30px" pb="40px" align="center" justify="center" w="100%">
-        <Flex align="center">
-          <Text>
-            # Rows:
-            <Input
-              mt="10px"
-              value={store.rows}
-              width="100px"
-              onChange={(e) => {
-                store.onRowsChange(e)
-              }}
-              placeholder="20"
-            />
-          </Text>
-        </Flex>
-        <Flex ml="20px" direction="row">
-          <Text>
-            Format:
-            <Select
-              display="inline-block"
-              ml="10px"
-              mt="10px"
-              w="200px"
-              onChange={(e) => {
-                store.formatType = e.target.value
-              }}
-              placeholder="select type"
-            >
-              <option value="JSON">JSON</option>
-              <option value="CSV">CSV</option>
-            </Select>
-          </Text>
-        </Flex>
-        <Flex ml="40px">
-          <Button
-            color="white"
-            background="brandColor"
-            onClick={store.generate}
-            disabled={!store.buttonEnable || store.rows.length === 0 || store.formatType === null}
-          >
-            Generate & Download
-          </Button>
-          <Button
-            disabled={!store.buttonEnable}
-            isLoading={store.transmitLoading}
-            ml="15px"
-            color="white"
-            background="brandColor"
-            onClick={store.transmit}
-          >
-            Submit to Trustream
-          </Button>
+          {store.columnItems.map((item, index) => {
+            return (
+              <Box key={index}>
+                <Flex align="center">
+                  <Flex
+                    direction="column"
+                    mt="2rem"
+                    height="120px"
+                    w="46vw"
+                    border="1px solid gray"
+                    shadow="md"
+                    borderRadius="10px"
+                    h="160px"
+                  >
+                    <Flex p="10px" justify="space-between">
+                      <Text fontSize="20px">{item}</Text>
+                      <Flex>
+                        Enable
+                        <Switch
+                          onChange={() => store.onEnableChanges(index + 1)}
+                          defaultChecked={store.columnEnables[index + 1]}
+                          colorScheme="teal"
+                          ml="5px"
+                        ></Switch>
+                      </Flex>
+                    </Flex>
+                    <Divider />
+                    <Flex px="20px" pt="20px" justify="start" width="100%">
+                      <Flex width="50%" align="start" direction="column">
+                        <Text>&nbsp;</Text>
+                        <Select
+                          mt="10px"
+                          onChange={(e) => {
+                            store.onRandomOrConst(e, index + 1)
+                          }}
+                          w="50%"
+                        >
+                          {RandomORConstValue.map((item, index) => {
+                            return (
+                              <option key={item.id} value={item.name}>
+                                {item.name}
+                              </option>
+                            )
+                          })}
+                        </Select>
+                      </Flex>
+                      {store.columnTypes[index]!.random ? (
+                        <Flex justify="space-between">
+                          <Flex width="25%" align="start" direction="column">
+                            <Text>Min</Text>
+                            <Input
+                              onChange={(e) => {
+                                store.onMinInputChange(e, index)
+                              }}
+                              value={store.columnTypes[index]!.value.min}
+                              mt="10px"
+                              width="100px"
+                              placeholder="20"
+                            />
+                          </Flex>
+                          <Flex width="25%" align="start" direction="column">
+                            <Text>Max</Text>
+                            <Input
+                              onChange={(e) => {
+                                store.onMaxInputChange(e, index)
+                              }}
+                              value={store.columnTypes[index]!.value.max}
+                              mt="10px"
+                              width="100px"
+                              placeholder="20"
+                            />
+                          </Flex>
+                        </Flex>
+                      ) : (
+                        <Flex width="50%" align="start" direction="column">
+                          <Text>Value</Text>
+                          <Input
+                            onChange={(e) => {
+                              store.onValueInputChange(e, index)
+                            }}
+                            value={store.columnTypes[index]!.value.value}
+                            mt="10px"
+                            width="100px"
+                            placeholder="20"
+                          />
+                        </Flex>
+                      )}
+                    </Flex>
+                  </Flex>
+                </Flex>
+              </Box>
+            )
+          })}
         </Flex>
       </Flex>
 
