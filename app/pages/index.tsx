@@ -534,11 +534,18 @@ const Home: BlitzPage = observer(() => {
   }))
 
   return (
-    <Box px="2.5vw" minW="1000px" pb="10vw">
+    <Box px="2.5vw" pb="10vw">
       <Text align="center" fontSize="25px" py="10px">
         Trustream Data Generator &nbsp;
       </Text>
-      <Flex mt="30px" align="center" justify="center" w="100%" justifyContent="space-between">
+      <Flex
+        mt="30px"
+        align="center"
+        justify="center"
+        w="100%"
+        flexDirection={{ base: "column", lg: "row" }}
+        justifyContent="space-between"
+      >
         <Flex align="center">
           <Text fontSize="1rem" fontWeight="semibold" mr="10px">
             Rows:
@@ -601,7 +608,7 @@ const Home: BlitzPage = observer(() => {
             height="100px"
             border="1px solid gray"
             shadow="md"
-            w="46vw"
+            w={{ base: "100%", sm: "100%", lg: "48%", xl: "46vw" }}
             borderRadius="10px"
             h="160px"
           >
@@ -643,7 +650,7 @@ const Home: BlitzPage = observer(() => {
             height="100px"
             border="1px solid gray"
             shadow="md"
-            w="46vw"
+            w={{ base: "100%", sm: "100%", lg: "48%", xl: "46vw" }}
             borderRadius="10px"
             h="160px"
           >
@@ -682,7 +689,7 @@ const Home: BlitzPage = observer(() => {
             direction="column"
             mt="2rem"
             pb="10px"
-            w="46vw"
+            w={{ base: "100%", sm: "100%", lg: "48%", xl: "46vw" }}
             border="1px solid gray"
             shadow="md"
             borderRadius="10px"
@@ -779,7 +786,7 @@ const Home: BlitzPage = observer(() => {
             direction="column"
             mt="2rem"
             pb="10px"
-            w="46vw"
+            w={{ base: "100%", sm: "100%", lg: "48%", xl: "46vw" }}
             border="1px solid gray"
             shadow="md"
             borderRadius="10px"
@@ -873,14 +880,14 @@ const Home: BlitzPage = observer(() => {
           </Flex>
           {store.columnItems.map((item, index) => {
             return (
-              <Box key={index}>
+              <Box key={index} w={{ base: "100%", sm: "100%", lg: "48%", xl: "46vw" }}>
                 <Flex align="center">
                   <Flex
                     direction="column"
                     mt="2rem"
                     height="120px"
-                    w="46vw"
                     border="1px solid gray"
+                    w="100%"
                     shadow="md"
                     borderRadius="10px"
                     h="160px"
