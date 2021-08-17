@@ -162,13 +162,17 @@ const Home: BlitzPage = observer(() => {
       return data
     },
     async pushData(privateKey: string, imei: string) {
-      const data = store.genPushData()
-      const filterData = removeNull(data)
-      console.log("filterData", filterData)
+      const rows = Number(store.rows)
+      let genData = new Array()
+      for (let index = 0; index < rows; index++) {
+        const data = store.genPushData(index)
+        genData.push(data)
+      }
+      console.log("filterData", genData)
       try {
         store.transmitLoading = true
         const response = await axios.post("/api/push", {
-          data: JSON.stringify(filterData),
+          data: JSON.stringify(genData),
           imei: imei,
           privateKey: privateKey,
         })
@@ -191,7 +195,6 @@ const Home: BlitzPage = observer(() => {
         const rows = Number(store.rows)
         let genData = new Array()
         for (let index = 0; index < rows; index++) {
-          var arr = []
           const data = store.genPushData(index)
           genData.push(data)
         }
@@ -230,7 +233,6 @@ const Home: BlitzPage = observer(() => {
         ).format("YYYY/MM/DD")}.csv` //文件名称
         var ws_name = "Sheet1" //Excel第一个sheet的名称
         var wb = XLSX.utils.book_new()
-        console.log(genData)
         var ws = XLSX.utils.aoa_to_sheet(genData)
         XLSX.utils.book_append_sheet(wb, ws, ws_name) //将数据添加到工作薄
         XLSX.writeFile(wb, filename) //导出Exce
