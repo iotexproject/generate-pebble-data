@@ -137,12 +137,14 @@ const Home: BlitzPage = observer(() => {
       }
       return null
     },
-    genPushData(index) {
+    genPushData(index: any) {
       const diff =
         (moment(store.endTime).unix() - moment(store.startTime).unix()) / Number(store.rows)
       console.log("rows", diff, moment(store.endTime).unix(), moment(store.startTime).unix())
       const data = {
+        // @ts-ignore
         latitude: store.coordinates[index][1],
+        // @ts-ignore
         longitude: store.coordinates[index][0],
         temperature: store.genColumnData(0),
         gasResistance: store.genColumnData(1),
