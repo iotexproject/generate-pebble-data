@@ -535,7 +535,7 @@ const Home: BlitzPage = observer(() => {
 
   return (
     <Box px="2.5vw" minW="1000px" pb="10vw">
-      <Text align="center" fontSize="25px">
+      <Text align="center" fontSize="25px" py="10px">
         Trustream Data Generator &nbsp;
       </Text>
       <Flex mt="30px" align="center" justify="center" w="100%" justifyContent="space-between">
