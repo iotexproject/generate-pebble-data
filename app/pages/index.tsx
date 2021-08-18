@@ -14,6 +14,11 @@ import moment from "moment"
 const RandomValue = "Random Value"
 const ConstValue = "Const Value"
 
+const MAP_API_KEY = "5b3ce3597851110001cf62483c2ad04dbf1048b187a375a7902bdec7"
+const MAP_URL = "https://api.openrouteservice.org"
+const SEARCH_GEOCODE = `${MAP_URL}/geocode/search`
+const GEOJSON = `${MAP_URL}/v2/directions/foot-walking`
+
 function removeNull(option: object) {
   if (!option) {
     return
@@ -43,12 +48,14 @@ const Home: BlitzPage = observer(() => {
     buttonEnable: true,
     columnEnables: Array(12).fill(true) as boolean[],
     formatType: null as unknown as string,
-    coordinates: gpsRoutes[0]?.coordinates,
+    coordinates: [],
     gyroscope: [],
     accelerometer: [],
     random: "",
     startTime: moment(new Date()).subtract(7, "d").format("YYYY-MM-DD HH:mm:ss"),
     endTime: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
+    searchFeatures: new Array(),
+    searchEndFeatures: new Array(),
     columnTypes: [
       { random: true, value: { max: "40", min: "20", value: "20" } },
       { random: true, value: { max: "40", min: "20", value: "20" } },
@@ -65,7 +72,6 @@ const Home: BlitzPage = observer(() => {
       { random: true, value: { max: "40", min: "20", value: "20" } },
       { random: true, value: { max: "40", min: "20", value: "20" } },
     ],
-
     AccelerometerColumnTypes: [
       { random: true, value: { max: "40", min: "20", value: "20" } },
       { random: true, value: { max: "40", min: "20", value: "20" } },
@@ -82,7 +88,11 @@ const Home: BlitzPage = observer(() => {
       "temperature2",
       "random",
     ],
-    rows: gpsRoutes[0]?.coordinates.length,
+    startPlace: "",
+    startSite: new Array(),
+    endPlace: "",
+    endSite: new Array(),
+    rows: 100,
     gpsRoute: 0,
     genRandom(nn: string, mm: string) {
       const n = parseFloat(nn)
@@ -100,7 +110,6 @@ const Home: BlitzPage = observer(() => {
     },
     genGyroscope() {
       const array = new Array<number>()
-      console.log(store.columnEnables[10])
 
       if (store.columnEnables[10]) {
         //gy
@@ -140,7 +149,6 @@ const Home: BlitzPage = observer(() => {
     genPushData(index: any) {
       const diff =
         (moment(store.endTime).unix() - moment(store.startTime).unix()) / Number(store.rows)
-      console.log("rows", diff, moment(store.endTime).unix(), moment(store.startTime).unix())
       const data = {
         // @ts-ignore
         latitude: store.coordinates[index][1],
@@ -168,7 +176,6 @@ const Home: BlitzPage = observer(() => {
         const data = store.genPushData(index)
         genData.push(data)
       }
-      console.log("filterData", genData)
       try {
         store.transmitLoading = true
         const response = await axios.post("/api/push", {
@@ -246,7 +253,6 @@ const Home: BlitzPage = observer(() => {
       store.gyroscopeColumnTypes[col]!.random = e.target.value === RandomValue
       store.checckButtonEnable()
     },
-
     onAccelerometerRandomOrConst(e: any, col: number) {
       store.AccelerometerColumnTypes[col]!.random = e.target.value === RandomValue
       store.checckButtonEnable()
@@ -276,7 +282,6 @@ const Home: BlitzPage = observer(() => {
       }
       store.checckButtonEnable()
     },
-
     onGyroscopeMaxInputChange(e: any, index: number) {
       if (!isNaN(Number(e.target.value))) {
         store.gyroscopeColumnTypes[index]!.value.max = e.target.value
@@ -336,7 +341,6 @@ const Home: BlitzPage = observer(() => {
                     parseFloat(columnType.value.max) > parseFloat(columnType.value.min)
                   ) {
                   } else {
-                    console.log(columnType.value.min, columnType.value.max)
                     store.buttonEnable = false
                     break
                   }
@@ -365,14 +369,12 @@ const Home: BlitzPage = observer(() => {
                     parseFloat(columnType.value.max) > parseFloat(columnType.value.min)
                   ) {
                   } else {
-                    console.log(columnType.value.min, columnType.value.max)
                     store.buttonEnable = false
                     break
                   }
                 } else {
                   if (columnType.value.value.length > 0) {
                   } else {
-                    console.log(columnType.value.min, columnType.value.max)
                     store.buttonEnable = false
                     break
                   }
@@ -393,14 +395,12 @@ const Home: BlitzPage = observer(() => {
                 parseFloat(columnType.value.max) > parseFloat(columnType.value.min)
               ) {
               } else {
-                console.log(columnType.value.min, columnType.value.max)
                 store.buttonEnable = false
                 break
               }
             } else {
               if (columnType.value.value.length > 0) {
               } else {
-                console.log(columnType.value.min, columnType.value.max)
                 store.buttonEnable = false
                 break
               }
@@ -423,14 +423,12 @@ const Home: BlitzPage = observer(() => {
       downloadLink.click()
       document.body.removeChild(downloadLink)
     },
-
     exportCsv(headers: Array<any>, rows: any, filename: string) {
       if (Array.isArray(headers) && headers.length > 0) {
         //表头信息不能为空
         if (!filename || typeof filename != "string") {
           filename = "export.csv"
         }
-        console.log(headers, rows, filename)
 
         let blob = store.getCsvBlob(headers, rows)
         let url = URL.createObjectURL(blob)
@@ -443,7 +441,6 @@ const Home: BlitzPage = observer(() => {
         URL.revokeObjectURL(url)
       }
     },
-
     getCsvBlob(headers, rows) {
       const BOM = "\uFEFF"
       let columnDelimiter = "," //默认列分隔符','
@@ -479,7 +476,6 @@ const Home: BlitzPage = observer(() => {
       let blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" })
       return blob
     },
-
     saveJSON(data: any, filename: string) {
       if (!data) {
         return
@@ -517,19 +513,65 @@ const Home: BlitzPage = observer(() => {
       if (column > 12) {
         return
       }
-      console.log(column)
 
       let columnEnable = store.columnEnables[column]
       store.columnEnables[column] = !columnEnable
       store.checckButtonEnable()
     },
     onChangeStartTime(value) {
-      console.log("Selected start Time: ", value)
       store.startTime = value
     },
     onChangeEndTime(value) {
-      console.log("Selected end Time: ", value)
       store.endTime = value
+    },
+    onChangeStartPlace(e) {
+      store.startPlace = e.target.value
+      if (store.startPlace !== "") {
+        this.searchGeocode(store.startPlace)
+      } else {
+        store.startSite = []
+      }
+    },
+    onChangeEndPlace(e) {
+      store.endPlace = e.target.value
+      if (store.endPlace !== "") {
+        this.searchEndGeocode(store.endPlace)
+      } else {
+        store.endSite = []
+      }
+    },
+    searchGeocode(value) {
+      axios.get(`${SEARCH_GEOCODE}?api_key=${MAP_API_KEY}&text=${value}`).then((res) => {
+        console.log("searchGeocode", res)
+        // @ts-ignore
+        store.searchFeatures = res.data.features
+      })
+    },
+    searchEndGeocode(value) {
+      axios.get(`${SEARCH_GEOCODE}?api_key=${MAP_API_KEY}&text=${value}`).then((res) => {
+        console.log("searchGeocode", res)
+        // @ts-ignore
+        store.searchEndFeatures = res.data.features
+      })
+    },
+    getCoordinates() {
+      if (store.startSite.length === 0 || store.endSite.length === 0) {
+        toast.error("Start Place and End Place Not Empty")
+        return false
+      }
+      axios
+        .get(
+          `${GEOJSON}?api_key=${MAP_API_KEY}&start=${store.startSite.join(
+            ","
+          )}&end=${store.endSite.join(",")}`
+        )
+        .then((res) => {
+          store.coordinates = res.data.features[0].geometry.coordinates
+          store.rows = Number(store.coordinates?.length)
+        })
+        .catch((err) => {
+          toast.error("Get Coordinates Error")
+        })
     },
   }))
 
@@ -557,6 +599,7 @@ const Home: BlitzPage = observer(() => {
               store.onRowsChange(e)
             }}
             placeholder="20"
+            type="number"
           />
           <Text fontSize="1rem" fontWeight="semibold" ml="20px" mr="10px">
             Format:
@@ -592,6 +635,177 @@ const Home: BlitzPage = observer(() => {
           >
             Submit to Trustream
           </Button>
+        </Flex>
+      </Flex>
+      <Flex
+        direction="column"
+        mt="2rem"
+        height="100px"
+        border="1px solid gray"
+        shadow="md"
+        w="100%"
+        borderRadius="10px"
+        h="250px"
+      >
+        <Flex p="10px" justify="space-between">
+          <Text fontSize="20px">GPS Route</Text>
+          <Flex>
+            Enable
+            <Switch
+              onChange={() => store.onEnableChanges(0)}
+              defaultChecked={store.columnEnables[0]}
+              colorScheme="teal"
+              ml="5px"
+            ></Switch>
+          </Flex>
+        </Flex>
+        <Divider />
+        <Flex justifyContent="space-between" flex="1">
+          {/* <Select
+            ml="20px"
+            onChange={(e) => {
+              store.onGPSChange(e)
+            }}
+            w="50%"
+            mt="20px"
+            value={store.gpsRoute}
+          >
+            {gpsRoutes.map((item, index) => {
+              return (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              )
+            })}
+          </Select> */}
+          <Flex flex="1" px="20px" justifyContent="flex-start" alignItems="flex-start" pt="20px">
+            <Flex alignItems="flex-start" flexDirection="column" mr="20px" position="relative">
+              <Text>Start Place</Text>
+              <Input
+                onChange={store.onChangeStartPlace}
+                value={store.startPlace}
+                width="20vw"
+                placeholder="Pleace Enter Starting place"
+                mt="10px"
+              />
+              {store.startSite.length !== 0 && (
+                <Text mt="10px">
+                  Location: {store.startSite[0]}, {store.startSite[1]}
+                </Text>
+              )}
+              {store.coordinates?.length !== 0 && (
+                <Text mt="10px"> Coordinates Total: {store.coordinates?.length}</Text>
+              )}
+              {store.searchFeatures.length !== 0 && (
+                <Flex
+                  w="100%"
+                  position="absolute"
+                  flexDirection="column"
+                  top="80px"
+                  bg="white"
+                  border="1px"
+                  borderColor="#eee"
+                  maxH="300px"
+                  overflow="auto"
+                  zIndex="22"
+                >
+                  {store.searchFeatures.map((item) => {
+                    return (
+                      <Text
+                        fontSize="xs"
+                        cursor="pointer"
+                        p="10px"
+                        css={{
+                          "&:hover": {
+                            background: "#eee",
+                          },
+                        }}
+                        key={item.properties.id}
+                        onClick={() => {
+                          store.startPlace = item.properties.label
+                          store.startSite = item.geometry.coordinates
+                          store.searchFeatures = []
+                        }}
+                      >
+                        {item.properties.label}
+                      </Text>
+                    )
+                  })}
+                </Flex>
+              )}
+            </Flex>
+            <Flex alignItems="flex-start" flexDirection="column" position="relative">
+              <Text>End Place</Text>
+              <Input
+                onChange={store.onChangeEndPlace}
+                value={store.endPlace}
+                width="20vw"
+                placeholder="Pleace Enter Ending place"
+                mt="10px"
+              />
+              {store.endSite.length !== 0 && (
+                <Text mt="10px">
+                  Location: {store.endSite[0]}, {store.endSite[1]}
+                </Text>
+              )}
+              {store.searchEndFeatures.length !== 0 && (
+                <Flex
+                  w="100%"
+                  position="absolute"
+                  flexDirection="column"
+                  top="80px"
+                  bg="white"
+                  border="1px"
+                  borderColor="#eee"
+                  maxH="300px"
+                  overflow="auto"
+                  zIndex="22"
+                >
+                  {store.searchEndFeatures.map((item) => {
+                    return (
+                      <Text
+                        fontSize="xs"
+                        cursor="pointer"
+                        p="10px"
+                        css={{
+                          "&:hover": {
+                            background: "#eee",
+                          },
+                        }}
+                        key={item.properties.id}
+                        onClick={() => {
+                          store.endPlace = item.properties.label
+                          store.endSite = item.geometry.coordinates
+                          store.searchEndFeatures = []
+                        }}
+                      >
+                        {item.properties.label}
+                      </Text>
+                    )
+                  })}
+                </Flex>
+              )}
+            </Flex>
+            <Button
+              mt="34px"
+              ml="10px"
+              color="white"
+              background="brandColor"
+              disabled={store.startSite.length === 0 || store.endSite.length === 0}
+              onClick={() => {
+                store.getCoordinates()
+              }}
+            >
+              Create Path
+            </Button>
+          </Flex>
+          <Box width="40%" height="100%">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://maps.openrouteservice.org/#/directions/Ladenburg,Germany/Heidelberg,Germany/data/55,130,32,198,15,97,4,224,38,9,96,59,2,24,5,192,166,6,113,0,184,64,14,0,232,3,96,1,128,86,82,6,103,32,26,0,88,4,228,62,227,24,184,129,184,142,63,1,24,1,51,208,14,192,217,189,65,85,243,225,11,68,4,0,14,169,224,68,77,135,40,5,208,32,3,55,128,6,221,46,112,1,60,195,234,64,28,192,45,52,116,150,2,187,238,77,22,72,45,232,119,163,184,140,17,188,58,200,152,24,193,110,200,250,24,208,40,202,0,110,232,0,250,218,14,33,184,160,168,46,150,232,168,241,144,14,136,168,184,2,114,152,0,22,46,9,129,96,168,48,184,164,36,114,0,238,232,240,150,37,217,149,213,174,56,124,44,0,190,114,0,94,80,0,182,184,124,248,189,189,64,0/embed/en-us"
+            ></iframe>
+          </Box>
         </Flex>
       </Flex>
       <Flex direction="row" align="center">
@@ -644,47 +858,99 @@ const Home: BlitzPage = observer(() => {
               />
             </Flex>
           </Flex>
-          <Flex
-            direction="column"
-            mt="2rem"
-            height="100px"
-            border="1px solid gray"
-            shadow="md"
-            w={{ base: "100%", sm: "100%", lg: "48%", xl: "46vw" }}
-            borderRadius="10px"
-            h="160px"
-          >
-            <Flex p="10px" justify="space-between">
-              <Text fontSize="20px">GPS Route</Text>
-              <Flex>
-                Enable
-                <Switch
-                  onChange={() => store.onEnableChanges(0)}
-                  defaultChecked={store.columnEnables[0]}
-                  colorScheme="teal"
-                  ml="5px"
-                ></Switch>
-              </Flex>
-            </Flex>
-            <Divider />
-            <Select
-              ml="20px"
-              onChange={(e) => {
-                store.onGPSChange(e)
-              }}
-              w="50%"
-              mt="20px"
-              value={store.gpsRoute}
-            >
-              {gpsRoutes.map((item, index) => {
-                return (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                )
-              })}
-            </Select>
-          </Flex>
+          {store.columnItems.map((item, index) => {
+            return (
+              <Box key={index} w={{ base: "100%", sm: "100%", lg: "48%", xl: "46vw" }}>
+                <Flex align="center">
+                  <Flex
+                    direction="column"
+                    mt="2rem"
+                    height="120px"
+                    border="1px solid gray"
+                    w="100%"
+                    shadow="md"
+                    borderRadius="10px"
+                    h="160px"
+                  >
+                    <Flex p="10px" justify="space-between">
+                      <Text fontSize="20px">{item}</Text>
+                      <Flex>
+                        Enable
+                        <Switch
+                          onChange={() => store.onEnableChanges(index + 1)}
+                          defaultChecked={store.columnEnables[index + 1]}
+                          colorScheme="teal"
+                          ml="5px"
+                        ></Switch>
+                      </Flex>
+                    </Flex>
+                    <Divider />
+                    <Flex px="20px" pt="20px" justify="start" width="100%">
+                      <Flex width="50%" align="start" direction="column">
+                        <Text>&nbsp;</Text>
+                        <Select
+                          mt="10px"
+                          onChange={(e) => {
+                            store.onRandomOrConst(e, index + 1)
+                          }}
+                          w="50%"
+                        >
+                          {RandomORConstValue.map((item, index) => {
+                            return (
+                              <option key={item.id} value={item.name}>
+                                {item.name}
+                              </option>
+                            )
+                          })}
+                        </Select>
+                      </Flex>
+                      {store.columnTypes[index]!.random ? (
+                        <Flex justify="space-between">
+                          <Flex width="25%" align="start" direction="column">
+                            <Text>Min</Text>
+                            <Input
+                              onChange={(e) => {
+                                store.onMinInputChange(e, index)
+                              }}
+                              value={store.columnTypes[index]!.value.min}
+                              mt="10px"
+                              width="100px"
+                              placeholder="20"
+                            />
+                          </Flex>
+                          <Flex width="25%" align="start" direction="column">
+                            <Text>Max</Text>
+                            <Input
+                              onChange={(e) => {
+                                store.onMaxInputChange(e, index)
+                              }}
+                              value={store.columnTypes[index]!.value.max}
+                              mt="10px"
+                              width="100px"
+                              placeholder="20"
+                            />
+                          </Flex>
+                        </Flex>
+                      ) : (
+                        <Flex width="50%" align="start" direction="column">
+                          <Text>Value</Text>
+                          <Input
+                            onChange={(e) => {
+                              store.onValueInputChange(e, index)
+                            }}
+                            value={store.columnTypes[index]!.value.value}
+                            mt="10px"
+                            width="100px"
+                            placeholder="20"
+                          />
+                        </Flex>
+                      )}
+                    </Flex>
+                  </Flex>
+                </Flex>
+              </Box>
+            )
+          })}
           <Flex
             direction="column"
             mt="2rem"
@@ -878,99 +1144,6 @@ const Home: BlitzPage = observer(() => {
               </Flex>
             </Flex>
           </Flex>
-          {store.columnItems.map((item, index) => {
-            return (
-              <Box key={index} w={{ base: "100%", sm: "100%", lg: "48%", xl: "46vw" }}>
-                <Flex align="center">
-                  <Flex
-                    direction="column"
-                    mt="2rem"
-                    height="120px"
-                    border="1px solid gray"
-                    w="100%"
-                    shadow="md"
-                    borderRadius="10px"
-                    h="160px"
-                  >
-                    <Flex p="10px" justify="space-between">
-                      <Text fontSize="20px">{item}</Text>
-                      <Flex>
-                        Enable
-                        <Switch
-                          onChange={() => store.onEnableChanges(index + 1)}
-                          defaultChecked={store.columnEnables[index + 1]}
-                          colorScheme="teal"
-                          ml="5px"
-                        ></Switch>
-                      </Flex>
-                    </Flex>
-                    <Divider />
-                    <Flex px="20px" pt="20px" justify="start" width="100%">
-                      <Flex width="50%" align="start" direction="column">
-                        <Text>&nbsp;</Text>
-                        <Select
-                          mt="10px"
-                          onChange={(e) => {
-                            store.onRandomOrConst(e, index + 1)
-                          }}
-                          w="50%"
-                        >
-                          {RandomORConstValue.map((item, index) => {
-                            return (
-                              <option key={item.id} value={item.name}>
-                                {item.name}
-                              </option>
-                            )
-                          })}
-                        </Select>
-                      </Flex>
-                      {store.columnTypes[index]!.random ? (
-                        <Flex justify="space-between">
-                          <Flex width="25%" align="start" direction="column">
-                            <Text>Min</Text>
-                            <Input
-                              onChange={(e) => {
-                                store.onMinInputChange(e, index)
-                              }}
-                              value={store.columnTypes[index]!.value.min}
-                              mt="10px"
-                              width="100px"
-                              placeholder="20"
-                            />
-                          </Flex>
-                          <Flex width="25%" align="start" direction="column">
-                            <Text>Max</Text>
-                            <Input
-                              onChange={(e) => {
-                                store.onMaxInputChange(e, index)
-                              }}
-                              value={store.columnTypes[index]!.value.max}
-                              mt="10px"
-                              width="100px"
-                              placeholder="20"
-                            />
-                          </Flex>
-                        </Flex>
-                      ) : (
-                        <Flex width="50%" align="start" direction="column">
-                          <Text>Value</Text>
-                          <Input
-                            onChange={(e) => {
-                              store.onValueInputChange(e, index)
-                            }}
-                            value={store.columnTypes[index]!.value.value}
-                            mt="10px"
-                            width="100px"
-                            placeholder="20"
-                          />
-                        </Flex>
-                      )}
-                    </Flex>
-                  </Flex>
-                </Flex>
-              </Box>
-            )
-          })}
         </Flex>
       </Flex>
 
