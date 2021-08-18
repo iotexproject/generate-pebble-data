@@ -543,14 +543,12 @@ const Home: BlitzPage = observer(() => {
     },
     searchGeocode(value) {
       axios.get(`${SEARCH_GEOCODE}?api_key=${MAP_API_KEY}&text=${value}`).then((res) => {
-        console.log("searchGeocode", res)
         // @ts-ignore
         store.searchFeatures = res.data.features
       })
     },
     searchEndGeocode(value) {
       axios.get(`${SEARCH_GEOCODE}?api_key=${MAP_API_KEY}&text=${value}`).then((res) => {
-        console.log("searchGeocode", res)
         // @ts-ignore
         store.searchEndFeatures = res.data.features
       })
@@ -571,7 +569,7 @@ const Home: BlitzPage = observer(() => {
           store.rows = Number(store.coordinates?.length)
         })
         .catch((err) => {
-          toast.error("Get Coordinates Error")
+          toast.error(err.response.data.error.message)
         })
     },
   }))
