@@ -258,6 +258,7 @@ const Home: BlitzPage = observer(() => {
       store.checckButtonEnable()
     },
     onGPSChange(e: any) {
+      // @ts-ignore
       store.coordinates = gpsRoutes[e.target.value]?.coordinates
       store.rows = store.coordinates?.length
       store.gpsRoute = e.target.value
