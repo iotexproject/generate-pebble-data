@@ -632,7 +632,7 @@ const Home: BlitzPage = observer(() => {
               !store.buttonEnable ||
               store.rows === 0 ||
               store.formatType === null ||
-              store.coordinates.length === 0
+              store.coordinates?.length === 0
             }
           >
             Generate & Download
