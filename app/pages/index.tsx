@@ -48,7 +48,7 @@ const Home: BlitzPage = observer(() => {
     buttonEnable: true,
     columnEnables: Array(12).fill(true) as boolean[],
     formatType: null as unknown as string,
-    coordinates: [],
+    coordinates: gpsRoutes[0]?.coordinates,
     gyroscope: [],
     accelerometer: [],
     random: "",
@@ -56,6 +56,7 @@ const Home: BlitzPage = observer(() => {
     endTime: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
     searchFeatures: new Array(),
     searchEndFeatures: new Array(),
+    type: "Range",
     columnTypes: [
       { random: true, value: { max: "40", min: "20", value: "20" } },
       { random: true, value: { max: "40", min: "20", value: "20" } },
@@ -92,7 +93,7 @@ const Home: BlitzPage = observer(() => {
     startSite: new Array(),
     endPlace: "",
     endSite: new Array(),
-    rows: 100,
+    rows: gpsRoutes[0]?.coordinates.length,
     gpsRoute: 0,
     genRandom(nn: string, mm: string) {
       const n = parseFloat(nn)
@@ -176,6 +177,7 @@ const Home: BlitzPage = observer(() => {
         const data = store.genPushData(index)
         genData.push(data)
       }
+      console.log("pushData", genData)
       try {
         store.transmitLoading = true
         const response = await axios.post("/api/push", {
@@ -258,6 +260,7 @@ const Home: BlitzPage = observer(() => {
       store.checckButtonEnable()
     },
     onGPSChange(e: any) {
+      store.type = "Range"
       // @ts-ignore
       store.coordinates = gpsRoutes[e.target.value]?.coordinates
       store.rows = store.coordinates?.length
@@ -554,6 +557,7 @@ const Home: BlitzPage = observer(() => {
       })
     },
     getCoordinates() {
+      store.type = "Path"
       if (store.startSite.length === 0 || store.endSite.length === 0) {
         toast.error("Start Place and End Place Not Empty")
         return false
@@ -570,6 +574,10 @@ const Home: BlitzPage = observer(() => {
         })
         .catch((err) => {
           toast.error(err.response.data.error.message)
+          store.rows = 0
+          store.coordinates = []
+          store.endPlace = ""
+          store.endSite = []
         })
     },
   }))
@@ -620,7 +628,12 @@ const Home: BlitzPage = observer(() => {
             color="white"
             background="brandColor"
             onClick={store.generate}
-            disabled={!store.buttonEnable || store.rows === 0 || store.formatType === null}
+            disabled={
+              !store.buttonEnable ||
+              store.rows === 0 ||
+              store.formatType === null ||
+              store.coordinates.length === 0
+            }
           >
             Generate & Download
           </Button>
@@ -659,24 +672,39 @@ const Home: BlitzPage = observer(() => {
           </Flex>
         </Flex>
         <Divider />
+        <Text fontSize="0.875rem" color="red" ml="20px" mt="10px">
+          Note: There is only one way to create a GPS Route, Select Range Place or use Start Place
+          and End Place
+        </Text>
         <Flex justifyContent="space-between" flex="1">
-          {/* <Select
-            ml="20px"
-            onChange={(e) => {
-              store.onGPSChange(e)
-            }}
-            w="50%"
-            mt="20px"
-            value={store.gpsRoute}
+          <Flex
+            flexDirection="column"
+            pt="20px"
+            px="20px"
+            justifyContent="flex-start"
+            alignItems="flex-start"
           >
-            {gpsRoutes.map((item, index) => {
-              return (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              )
-            })}
-          </Select> */}
+            <Text>Select Range Place</Text>
+            <Select
+              onChange={(e) => {
+                store.onGPSChange(e)
+              }}
+              w="20vw"
+              mt="10px"
+              value={store.gpsRoute}
+            >
+              {gpsRoutes.map((item, index) => {
+                return (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                )
+              })}
+            </Select>
+            {store.coordinates?.length !== 0 && store.type === "Range" && (
+              <Text mt="10px">Range Coordinates Total: {store.coordinates?.length}</Text>
+            )}
+          </Flex>
           <Flex flex="1" px="20px" justifyContent="flex-start" alignItems="flex-start" pt="20px">
             <Flex alignItems="flex-start" flexDirection="column" mr="20px" position="relative">
               <Text>Start Place</Text>
@@ -692,8 +720,8 @@ const Home: BlitzPage = observer(() => {
                   Location: {store.startSite[0]}, {store.startSite[1]}
                 </Text>
               )}
-              {store.coordinates?.length !== 0 && (
-                <Text mt="10px"> Coordinates Total: {store.coordinates?.length}</Text>
+              {store.coordinates?.length !== 0 && store.type === "Path" && (
+                <Text mt="10px">Path Coordinates Total: {store.coordinates?.length}</Text>
               )}
               {store.searchFeatures.length !== 0 && (
                 <Flex
@@ -798,13 +826,13 @@ const Home: BlitzPage = observer(() => {
               Create Path
             </Button>
           </Flex>
-          <Box width="40%" height="100%">
+          {/* <Box width="40%" height="100%">
             <iframe
               width="100%"
               height="100%"
               src="https://maps.openrouteservice.org/#/directions/Ladenburg,Germany/Heidelberg,Germany/data/55,130,32,198,15,97,4,224,38,9,96,59,2,24,5,192,166,6,113,0,184,64,14,0,232,3,96,1,128,86,82,6,103,32,26,0,88,4,228,62,227,24,184,129,184,142,63,1,24,1,51,208,14,192,217,189,65,85,243,225,11,68,4,0,14,169,224,68,77,135,40,5,208,32,3,55,128,6,221,46,112,1,60,195,234,64,28,192,45,52,116,150,2,187,238,77,22,72,45,232,119,163,184,140,17,188,58,200,152,24,193,110,200,250,24,208,40,202,0,110,232,0,250,218,14,33,184,160,168,46,150,232,168,241,144,14,136,168,184,2,114,152,0,22,46,9,129,96,168,48,184,164,36,114,0,238,232,240,150,37,217,149,213,174,56,124,44,0,190,114,0,94,80,0,182,184,124,248,189,189,64,0/embed/en-us"
             ></iframe>
-          </Box>
+          </Box> */}
         </Flex>
       </Flex>
       <Flex direction="row" align="center">
