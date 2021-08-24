@@ -10,6 +10,7 @@ import { InputPrivateKeyDialog } from "app/components/InputPrivateKey"
 import toast from "react-hot-toast"
 import { DateTimePicker } from "react-rainbow-components"
 import moment from "moment"
+import Upload from "rc-upload"
 
 const RandomValue = "Random Value"
 const ConstValue = "Const Value"
@@ -19,28 +20,11 @@ const MAP_URL = "https://api.openrouteservice.org"
 const SEARCH_GEOCODE = `${MAP_URL}/geocode/search`
 const GEOJSON = `${MAP_URL}/v2/directions/foot-walking`
 
-function removeNull(option: object) {
-  if (!option) {
-    return
-  }
-  for (var attr in option) {
-    if (option[attr] === null) {
-      delete option[attr]
-      continue
-    }
-    if (typeof option[attr] == "object") {
-      removeNull(option[attr])
-    }
-  }
-  return option
-}
-
 const Home: BlitzPage = observer(() => {
   const RandomORConstValue = [
     { name: RandomValue, id: 1 },
     { name: ConstValue, id: 2 },
   ]
-  // latitude longitude tempture GasResistance SNR vbat pressure humidity light temperature2 timestamp random
 
   const store = useLocalObservable(() => ({
     inputPrivateKeyDialogVisible: false,
@@ -82,6 +66,17 @@ const Home: BlitzPage = observer(() => {
       "Temperature",
       "GasResistance",
       "SNR",
+      "vbat",
+      "pressure",
+      "humidity",
+      "light",
+      "temperature2",
+      "random",
+    ],
+    objKey: [
+      "temperature",
+      "gasResistance",
+      "snr",
       "vbat",
       "pressure",
       "humidity",
@@ -148,6 +143,7 @@ const Home: BlitzPage = observer(() => {
       return null
     },
     genPushData(index: any) {
+      console.log(store.genGyroscope())
       const diff =
         (moment(store.endTime).unix() - moment(store.startTime).unix()) / Number(store.rows)
       const data = {
@@ -165,8 +161,8 @@ const Home: BlitzPage = observer(() => {
         temperature2: store.genColumnData(7),
         timestamp: `${moment(store.startTime).unix() + diff * index}`,
         random: store.genColumnData(8),
-        gyroscope: store.genGyroscope() as any,
-        accelerometer: store.genAccelerometer() as any,
+        gyroscope: store.genGyroscope(),
+        accelerometer: store.genAccelerometer(),
       }
       return data
     },
@@ -580,7 +576,92 @@ const Home: BlitzPage = observer(() => {
           store.endSite = []
         })
     },
+    onImportExcel: (file) => {
+      // 获取上传的文件对象
+      const files = file
+
+      // 通过FileReader对象读取文件
+      const fileReader = new FileReader()
+      fileReader.onload = (event) => {
+        try {
+          // @ts-ignore
+          const { result } = event.target
+          const workbook = XLSX.read(result, { type: "binary" })
+          let data = []
+          for (const sheet in workbook.Sheets) {
+            if (workbook.Sheets.hasOwnProperty(sheet)) {
+              // @ts-ignore
+              data = data.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]))
+            }
+          }
+          toast.success("Parsed successfully")
+          store.parsedData(data)
+        } catch (e) {
+          toast.error("Parsing failed")
+        }
+      }
+      fileReader.readAsBinaryString(files)
+    },
+    parsedData: (data) => {
+      console.log("parsedData", data)
+      store.rows = data.length
+      store.type = "Path"
+      store.formatType = "CSV"
+      store.startSite = [data[0].longitude, data[0].latitude]
+      store.endSite = [data[data.length - 1].longitude, data[data.length - 1].latitude]
+      store.startTime = moment(data[0].timestamp * 1000).format("YYYY-MM-DD HH:mm:ss")
+      store.endTime = moment(data[data.length - 1].timestamp * 1000).format("YYYY-MM-DD HH:mm:ss")
+      const maps = new Array()
+      data.map((item) => {
+        maps.push([item.longitude, item.latitude])
+      })
+      store.coordinates = maps
+      store.parsedMinMax(data)
+    },
+    parsedMinMax: (data) => {
+      store.columnTypes.forEach((item, index) => {
+        const min = Math.min.apply(
+          Math,
+          data.map((o) => {
+            return o[`${store.objKey[index]}`]
+          })
+        )
+        const max = Math.max.apply(
+          Math,
+          data.map((o) => {
+            return o[`${store.objKey[index]}`]
+          })
+        )
+        if (min === max) {
+          item.random = false
+          item.value.value = min
+        } else {
+          item.value.min = min
+          item.value.max = max
+        }
+      })
+      store.gyroscopeColumnTypes.forEach((item, index) => {})
+    },
   }))
+
+  const uploadProps = {
+    multiple: true,
+    accept: ".csv",
+    beforeUpload(file) {
+      console.log(file, file.name)
+      store.onImportExcel(file)
+      return false
+    },
+    onStart(file) {
+      console.log("onStart", file, file.name)
+    },
+    onSuccess(ret) {
+      console.log("onSuccess", ret)
+    },
+    onError(err) {
+      console.log("onError", err)
+    },
+  }
 
   return (
     <Box px="2.5vw" pb="10vw">
@@ -615,13 +696,20 @@ const Home: BlitzPage = observer(() => {
             display="inline-block"
             w="200px"
             onChange={(e) => {
+              console.log(e.target.value)
               store.formatType = e.target.value
             }}
+            value={store.formatType}
             placeholder="select type"
           >
             <option value="JSON">JSON</option>
             <option value="CSV">CSV</option>
           </Select>
+          <Upload {...uploadProps}>
+            <Button color="white" ml="20px" background="brandColor" onClick={store.generate}>
+              Import
+            </Button>
+          </Upload>
         </Flex>
         <Flex ml="40px">
           <Button

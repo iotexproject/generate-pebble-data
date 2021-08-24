@@ -42,6 +42,7 @@
     "mobx-react-lite": "^3.2.0",
     "moment": "2.29.1",
     "protobufjs": "^6.11.2",
+    "rc-upload": "4.3.1",
     "react": "alpha",
     "react-dom": "alpha",
     "react-final-form": "6.5.3",
