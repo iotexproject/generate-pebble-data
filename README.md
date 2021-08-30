@@ -1,12 +1,50 @@
-[![Blitz.js](https://raw.githubusercontent.com/blitz-js/art/master/github-cover-photo.png)](https://blitzjs.com)
+This is a [Pebble Tracker](https://docs.iotex.io/secure-hardware/pebble-tracker) verifiable data generator: it generates a set of data for an hypotatycal Pebble Device, accounrding to the user rules, then it signs the data as a area device would do and transmits the data to the IoTeX network for use in Dapps.
 
-This is a [Blitz.js](https://github.com/blitz-js/blitz) app.
+This tool is available at [https://brewmy.info](https://brewmy.info])
 
-# **generate-pebble-data**
+This is app is created using [Blitz.js](https://github.com/blitz-js/blitz).
 
-## Getting Started
+# Pebble Data Generator
 
-Run your app in the development mode.
+## For users
+
+### Prerequisites
+Please contact an admin on our Discord channel and request a pre-registered Pebble Tracker identity (IMEI & Private key)
+
+### Use the data generator
+1. Access the web tool at brewmy.info
+![image](https://user-images.githubusercontent.com/11096047/131354629-a4eb5a46-2605-4f60-86c2-43b705892f62.png)
+
+2. Set the GPS route
+You can either select one of the pre-defined routes from the combo box, or set your own start and end points for your route. If you set your custom route, click "Create path" to generate the GPS locations
+
+3. Set the timestamp range
+Set the start and end time for your dataset, make sure the end time is after the start time! The timestamps will be generated to be equally distributed along all data points.
+
+4. Set the generator for each sensor
+For each sensor data, set and configure the generator. At this moment, only a constant value or a random value generator are available (feel free to [hack the web tool to add more generators](#for_developers)!). 
+
+**Constant generator**: you can pick the value for that sensor, and it will be replicated along the entire dataset
+
+**Random generator**: you can pick the minimum and maximum value for that sensor, and a random value included in [min, max] will be generated forit along the entire dataset
+
+5. Export the dataset
+If you intend to "hack" your dataset (e.g. introduce over/under-temperature, mechanical shocks, ambient light over the threshold, etc...) you can:
+- Export the dataset by selecting CSV in the "Type" dropdown
+- Edit your CSV by introducing your custom "events"
+- Reimport the CSV by clicking the "Import" button
+
+6. Send the data to the network
+Once your dataset is ready, you can use the web tool to transmit the data to the network by clicking the "Submit to TruStream" button:
+![image](https://user-images.githubusercontent.com/11096047/131355306-50b7fd5d-5d0f-4abd-9e09-a6b060d92877.png)
+
+
+The tool will ask for the IMEI and private key of your "simulated device" (please ask in our discord channel if you need a device identity), input the data and confirm.
+At the end of the transmission, your dataset will be "ingested" and verified by the network and, eventually, indexed in the TruTream Graph node ready to be pulled by your Dapp (see the Fetch Device Telemetry section).
+
+## For Developers
+
+Run this tool locally in the development mode:
 
 ```
 blitz dev
@@ -14,160 +52,6 @@ blitz dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Environment Variables
+Check out the [Blitz! framework](https://github.com/blitz-js/blitz#readme) for more.
 
-Ensure the `.env.local` file has required environment variables:
 
-```
-DATABASE_URL=postgresql://<YOUR_DB_USERNAME>@localhost:5432/generate-pebble-data
-```
-
-Ensure the `.env.test.local` file has required environment variables:
-
-```
-DATABASE_URL=postgresql://<YOUR_DB_USERNAME>@localhost:5432/generate-pebble-data_test
-```
-
-## Tests
-
-Runs your tests using Jest.
-
-```
-yarn test
-```
-
-Blitz comes with a test setup using [Jest](https://jestjs.io/) and [react-testing-library](https://testing-library.com/).
-
-## Commands
-
-Blitz comes with a powerful CLI that is designed to make development easy and fast. You can install it with `npm i -g blitz`
-
-```
-  blitz [COMMAND]
-
-  dev       Start a development server
-  build     Create a production build
-  start     Start a production server
-  export    Export your Blitz app as a static application
-  prisma    Run prisma commands
-  generate  Generate new files for your Blitz project
-  console   Run the Blitz console REPL
-  install   Install a recipe
-  help      Display help for blitz
-  test      Run project tests
-```
-
-You can read more about it on the [CLI Overview](https://blitzjs.com/docs/cli-overview) documentation.
-
-## What's included?
-
-Here is the starting structure of your app.
-
-```
-generate-pebble-data
-├── app/
-│   ├── api/
-│   ├── auth/
-│   │   ├── components/
-│   │   │   ├── LoginForm.tsx
-│   │   │   └── SignupForm.tsx
-│   │   ├── mutations/
-│   │   │   ├── changePassword.ts
-│   │   │   ├── forgotPassword.test.ts
-│   │   │   ├── forgotPassword.ts
-│   │   │   ├── login.ts
-│   │   │   ├── logout.ts
-│   │   │   ├── resetPassword.test.ts
-│   │   │   ├── resetPassword.ts
-│   │   │   └── signup.ts
-│   │   ├── pages/
-│   │   │   ├── forgot-password.tsx
-│   │   │   ├── login.tsx
-│   │   │   ├── reset-password.tsx
-│   │   │   └── signup.tsx
-│   │   └── validations.ts
-│   ├── core/
-│   │   ├── components/
-│   │   │   ├── Form.tsx
-│   │   │   └── LabeledTextField.tsx
-│   │   ├── hooks/
-│   │   │   └── useCurrentUser.ts
-│   │   └── layouts/
-│   │       └── Layout.tsx
-│   ├── pages/
-│   │   ├── 404.tsx
-│   │   ├── _app.tsx
-│   │   ├── _document.tsx
-│   │   ├── index.test.tsx
-│   │   └── index.tsx
-│   └── users/
-│       └── queries/
-│           └── getCurrentUser.ts
-├── db/
-│   ├── index.ts
-│   ├── schema.prisma
-│   └── seeds.ts
-├── integrations/
-├── mailers/
-│   └── forgotPasswordMailer.ts
-├── public/
-│   ├── favicon.ico*
-│   └── logo.png
-├── test/
-│   ├── setup.ts
-│   └── utils.tsx
-├── README.md
-├── babel.config.js
-├── blitz.config.js
-├── jest.config.js
-├── package.json
-├── tsconfig.json
-├── types.d.ts
-├── types.ts
-└── yarn.lock
-```
-
-These files are:
-
-- The `app/` folder is a container for most of your project. This is where you’ll put any pages or API routes.
-
-- `db/` is where your database configuration goes. If you’re writing models or checking migrations, this is where to go.
-
-- `public/` is a folder where you will put any static assets. If you have images, files, or videos which you want to use in your app, this is where to put them.
-
-- `integrations/` is a folder to put all third-party integrations like with Stripe, Sentry, etc.
-
-- `test/` is a folder where you can put test utilities and integration tests.
-
-- `package.json` contains information about your dependencies and devDependencies. If you’re using a tool like `npm` or `yarn`, you won’t have to worry about this much.
-
-- `tsconfig.json` is our recommended setup for TypeScript.
-
-- `.babelrc.js`, `.env`, etc. ("dotfiles") are configuration files for various bits of JavaScript tooling.
-
-- `blitz.config.js` is for advanced custom configuration of Blitz. It extends [`next.config.js`](https://nextjs.org/docs/api-reference/next.config.js/introduction).
-
-- `jest.config.js` contains config for Jest tests. You can [customize it if needed](https://jestjs.io/docs/en/configuration).
-
-You can read more about it in the [File Structure](https://blitzjs.com/docs/file-structure) section of the documentation.
-
-### Tools included
-
-Blitz comes with a set of tools that corrects and formats your code, facilitating its future maintenance. You can modify their options and even uninstall them.
-
-- **ESLint**: It lints your code: searches for bad practices and tell you about it. You can customize it via the `.eslintrc.js`, and you can install (or even write) plugins to have it the way you like it. It already comes with the [`blitz`](https://github.com/blitz-js/blitz/tree/canary/packages/eslint-config) config, but you can remove it safely. [Learn More](https://eslint.org).
-- **Husky**: It adds [githooks](https://git-scm.com/docs/githooks), little pieces of code that get executed when certain Git events are triggerd. For example, `pre-commit` is triggered just before a commit is created. You can see the current hooks inside `.husky/`. If are having problems commiting and pushing, check out ther [troubleshooting](https://typicode.github.io/husky/#/?id=troubleshoot) guide. [Learn More](https://typicode.github.io/husky).
-- **Prettier**: It formats your code to look the same everywhere. You can configure it via the `.prettierrc` file. The `.prettierignore` contains the files that should be ignored by Prettier; useful when you have large files or when you want to keep a custom formatting. [Learn More](https://prettier.io).
-
-## Learn more
-
-Read the [Blitz.js Documentation](https://blitzjs.com/docs/getting-started) to learn more.
-
-The Blitz community is warm, safe, diverse, inclusive, and fun! Feel free to reach out to us in any of our communication channels.
-
-- [Website](https://blitzjs.com/)
-- [Discord](https://discord.blitzjs.com/)
-- [Report an issue](https://github.com/blitz-js/blitz/issues/new/choose)
-- [Forum discussions](https://github.com/blitz-js/blitz/discussions)
-- [How to Contribute](https://blitzjs.com/docs/contributing)
-- [Sponsor or donate](https://github.com/blitz-js/blitz#sponsors-and-donations)
