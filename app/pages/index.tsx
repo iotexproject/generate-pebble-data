@@ -168,11 +168,12 @@ const Home: BlitzPage = observer(() => {
     },
     async pushData(privateKey: string, imei: string) {
       const rows = Number(store.rows)
-      let genData = new Array()
-      for (let index = 0; index < rows; index++) {
-        const data = store.genPushData(index)
-        genData.push(data)
-      }
+      // let genData = new Array()
+      // for (let index = 0; index < rows; index++) {
+      //   const data = store.genPushData(index)
+      //   genData.push(data)
+      // }
+      const genData = store.genPushData(0)
       console.log("pushData", genData)
       try {
         store.transmitLoading = true
