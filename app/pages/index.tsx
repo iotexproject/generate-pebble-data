@@ -169,28 +169,27 @@ const Home: BlitzPage = observer(() => {
     async pushData(privateKey: string, imei: string) {
       const rows = Number(store.rows)
       // let genData = new Array()
-      // for (let index = 0; index < rows; index++) {
-      //   const data = store.genPushData(index)
-      //   genData.push(data)
-      // }
-      const genData = store.genPushData(0)
-      console.log("pushData", genData)
-      try {
-        store.transmitLoading = true
-        const response = await axios.post("/api/push", {
-          data: JSON.stringify(genData),
-          imei: imei,
-          privateKey: privateKey,
-        })
-        store.transmitLoading = false
-        if (response.data.success) {
-          toast.success("Transmit Success")
-        } else {
-          toast.error(response.data.msg)
+      for (let index = 0; index < rows; index++) {
+        // const data = store.genPushData(index)
+        const genData = store.genPushData(index)
+        console.log("genData", genData)
+        try {
+          store.transmitLoading = true
+          const response = await axios.post("/api/push", {
+            data: JSON.stringify(genData),
+            imei: imei,
+            privateKey: privateKey,
+          })
+          store.transmitLoading = false
+          if (response.data.success) {
+            toast.success("Transmit Success")
+          } else {
+            toast.error(response.data.msg)
+          }
+        } catch (error) {
+          toast.error(error)
+          store.transmitLoading = false
         }
-      } catch (error) {
-        toast.error(error)
-        store.transmitLoading = false
       }
     },
     transmit() {

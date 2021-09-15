@@ -5,11 +5,12 @@ import { ecsign, sha256, setLengthLeft, toBuffer } from "ethereumjs-util"
 import _ from "lodash"
 
 const handler = async (req: BlitzApiRequest, res: BlitzApiResponse) => {
+  console.log(req, res)
   const imei = req.body.imei
   const privateKey = req.body.privateKey
   const requestData: SensorData = JSON.parse(req.body.data)
   const sensorData = SensorData.create(requestData)
-  console.log(sensorData)
+  console.log('sensorData', sensorData)
   const data = Buffer.from(SensorData.encode(sensorData).finish())
   const timestamp = _.round(Date.now() / 1000)
   const type = BinPackage.PackageType.DATA
@@ -31,10 +32,11 @@ const handler = async (req: BlitzApiRequest, res: BlitzApiResponse) => {
     })
     const pkg = Buffer.from(binPackage.finish())
     const client = await MqttService.createClient()
+    console.log('client', client, pkg)
     try {
       const response = await client?.publish(`device/${imei}/data`, pkg)
-      console.log(response)
-      await client?.end()
+      const end = await client?.end()
+      console.log('response', response, end)
       res.json({ success: true })
     } catch (e) {
       console.log(e.toString())
