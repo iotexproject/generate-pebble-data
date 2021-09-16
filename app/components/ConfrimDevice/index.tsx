@@ -21,7 +21,7 @@ import { observer, useLocalObservable } from "mobx-react-lite"
 interface IComponentProps {
   isOpen?: any
   onClose: any
-  confrimDeviceSuccess: (privateKey: string, imei: string) => void
+  confrimDeviceSuccess: (privateKey: string, imei: string, address: string) => void
 }
 
 export const ConfrimDevice = observer((props: IComponentProps) => {
@@ -31,6 +31,7 @@ export const ConfrimDevice = observer((props: IComponentProps) => {
     buttonDisable: true,
     imei: "",
     privateKey: "",
+    address: "",
     colseModal() {
       store.reset()
       onClose()
@@ -40,7 +41,8 @@ export const ConfrimDevice = observer((props: IComponentProps) => {
       store.imei = ""
     },
     next() {
-      confrimDeviceSuccess(store.privateKey, store.imei)
+      console.log(store.address, store.address.replace("0x", ""))
+      confrimDeviceSuccess(store.privateKey, store.imei, store.address)
       onClose()
     },
     onInputChange(e: any, inputType: number) {
@@ -51,11 +53,19 @@ export const ConfrimDevice = observer((props: IComponentProps) => {
         store.privateKey = e.target.value
       }
 
+      if (inputType === 2) {
+        store.address = e.target.value
+      }
+
       store.buttonEnable()
     },
 
     buttonEnable() {
-      store.buttonDisable = !(store.privateKey.length > 0 && store.imei.length > 0)
+      store.buttonDisable = !(
+        store.privateKey.length > 0 &&
+        store.imei.length > 0 &&
+        store.address.length > 0
+      )
     },
   }))
 
@@ -109,6 +119,24 @@ export const ConfrimDevice = observer((props: IComponentProps) => {
                 }}
                 value={store.privateKey}
                 placeholder={"PrivateKey"}
+                size="sm"
+              />
+            </Flex>
+            <Flex
+              mt="15px"
+              alignItems={["flex-start", "center"]}
+              mb="3"
+              direction={["column", "row"]}
+            >
+              <Text fontSize="sm" w="200px" mb={[2, 0]}>
+                Address
+              </Text>
+              <Input
+                onChange={(e) => {
+                  store.onInputChange(e, 2)
+                }}
+                value={store.address}
+                placeholder={"Address"}
                 size="sm"
               />
             </Flex>

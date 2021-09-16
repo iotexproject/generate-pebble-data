@@ -8,7 +8,7 @@ const handler = async (req: BlitzApiRequest, res: BlitzApiResponse) => {
   const imei = req.body.imei
   const privateKey = req.body.privateKey
   const timestamp = _.round(Date.now() / 1000)
-  const owner = Buffer.from('F1c84E4C02407f24829e830d345473f748b09ca1', 'hex');
+  const owner = Buffer.from(req.body.address.replace("0x", ""), 'hex');
   const hash = sha256(Buffer.concat([owner, setLengthLeft(toBuffer(timestamp), 4)]));
 
   try {

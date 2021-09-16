@@ -650,7 +650,7 @@ const Home: BlitzPage = observer(() => {
       })
       store.gyroscopeColumnTypes.forEach((item, index) => {})
     },
-    async confrimDevice(privateKey: string, imei: string) {
+    async confrimDevice(privateKey: string, imei: string, address: string) {
       store.config.privateKey = privateKey
       store.config.imei = imei
       try {
@@ -658,6 +658,7 @@ const Home: BlitzPage = observer(() => {
         const response = await axios.post("/api/confirm", {
           imei: imei,
           privateKey: privateKey,
+          address: address,
         })
         store.confirmLoading = false
         if (response.data.success) {
@@ -1316,8 +1317,8 @@ const Home: BlitzPage = observer(() => {
         onClose={() => {
           store.confrimDeviceVisible = false
         }}
-        confrimDeviceSuccess={(privateKey, imei) => {
-          store.confrimDevice(privateKey, imei)
+        confrimDeviceSuccess={(privateKey, imei, address) => {
+          store.confrimDevice(privateKey, imei, address)
         }}
       ></ConfrimDevice>
 
