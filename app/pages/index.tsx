@@ -7,6 +7,7 @@ import XLSX from "xlsx"
 import { gpsRoutes } from "../gpsRoutes/index"
 import { Box, Button, Divider, Flex, Input, Select, Switch, Text } from "@chakra-ui/react"
 import { InputPrivateKeyDialog } from "app/components/InputPrivateKey"
+import { ConfrimDevice } from "app/components/ConfrimDevice"
 import toast from "react-hot-toast"
 import { DateTimePicker } from "react-rainbow-components"
 import moment from "moment"
@@ -29,6 +30,7 @@ const Home: BlitzPage = observer(() => {
   const store = useLocalObservable(() => ({
     inputPrivateKeyDialogVisible: false,
     transmitLoading: false,
+    confirmLoading: false,
     buttonEnable: true,
     columnEnables: Array(12).fill(true) as boolean[],
     formatType: null as unknown as string,
@@ -41,6 +43,11 @@ const Home: BlitzPage = observer(() => {
     searchFeatures: new Array(),
     searchEndFeatures: new Array(),
     type: "Range",
+    confrimDeviceVisible: false,
+    config: {
+      privateKey: "",
+      imei: "",
+    },
     columnTypes: [
       { random: true, value: { max: "40", min: "20", value: "20" } },
       { random: true, value: { max: "40", min: "20", value: "20" } },
@@ -90,6 +97,7 @@ const Home: BlitzPage = observer(() => {
     endSite: new Array(),
     rows: gpsRoutes[0]?.coordinates.length,
     gpsRoute: 0,
+    progress: 0,
     genRandom(nn: string, mm: string) {
       const n = parseFloat(nn)
       const m = parseFloat(mm)
@@ -167,12 +175,11 @@ const Home: BlitzPage = observer(() => {
       return data
     },
     async pushData(privateKey: string, imei: string) {
+      this.progress = 1
       const rows = Number(store.rows)
-      // let genData = new Array()
       for (let index = 0; index < rows; index++) {
-        // const data = store.genPushData(index)
         const genData = store.genPushData(index)
-        console.log("genData", genData)
+        this.progress = (index / rows) * 100
         try {
           store.transmitLoading = true
           const response = await axios.post("/api/push", {
@@ -182,7 +189,8 @@ const Home: BlitzPage = observer(() => {
           })
           store.transmitLoading = false
           if (response.data.success) {
-            toast.success("Transmit Success")
+            console.log("progress", this.progress)
+            // toast.success("Transmit Success")
           } else {
             toast.error(response.data.msg)
           }
@@ -642,6 +650,26 @@ const Home: BlitzPage = observer(() => {
       })
       store.gyroscopeColumnTypes.forEach((item, index) => {})
     },
+    async confrimDevice(privateKey: string, imei: string) {
+      store.config.privateKey = privateKey
+      store.config.imei = imei
+      try {
+        store.confirmLoading = true
+        const response = await axios.post("/api/confirm", {
+          imei: imei,
+          privateKey: privateKey,
+        })
+        store.confirmLoading = false
+        if (response.data.success) {
+          toast.success("Transmit Success")
+        } else {
+          toast.error(response.data.msg)
+        }
+      } catch (error) {
+        toast.error(error)
+        store.confirmLoading = false
+      }
+    },
   }))
 
   const uploadProps = {
@@ -705,14 +733,8 @@ const Home: BlitzPage = observer(() => {
             <option value="JSON">JSON</option>
             <option value="CSV">CSV</option>
           </Select>
-          <Upload {...uploadProps}>
-            <Button color="white" ml="20px" background="brandColor" onClick={store.generate}>
-              Import
-            </Button>
-          </Upload>
-        </Flex>
-        <Flex ml="40px">
           <Button
+            ml="20px"
             color="white"
             background="brandColor"
             onClick={store.generate}
@@ -725,13 +747,30 @@ const Home: BlitzPage = observer(() => {
           >
             Generate & Download
           </Button>
+          <Upload {...uploadProps}>
+            <Button color="white" ml="20px" background="brandColor" onClick={store.generate}>
+              Import
+            </Button>
+          </Upload>
+        </Flex>
+        <Flex ml="40px">
           <Button
-            disabled={!store.buttonEnable}
+            color="white"
+            background="brandColor"
+            onClick={() => {
+              store.confrimDeviceVisible = true
+            }}
+            disabled={store.confirmLoading}
+          >
+            Configure Your Device
+          </Button>
+          <Button
+            disabled={!(store.config.imei !== "" && store.config.privateKey !== "")}
             isLoading={store.transmitLoading}
             ml="15px"
             color="white"
             background="brandColor"
-            onClick={store.transmit}
+            onClick={() => store.pushData(store.config.privateKey, store.config.imei)}
           >
             Submit to Trustream
           </Button>
@@ -1271,6 +1310,44 @@ const Home: BlitzPage = observer(() => {
           store.pushData(privateKey, imei)
         }}
       ></InputPrivateKeyDialog>
+
+      <ConfrimDevice
+        isOpen={store.confrimDeviceVisible}
+        onClose={() => {
+          store.confrimDeviceVisible = false
+        }}
+        confrimDeviceSuccess={(privateKey, imei) => {
+          store.confrimDevice(privateKey, imei)
+        }}
+      ></ConfrimDevice>
+
+      {store.progress > 0 && store.progress !== 100 && (
+        <Box
+          w="26%"
+          position="fixed"
+          top="0.5rem"
+          p="1rem"
+          bg="white"
+          left="34%"
+          boxShadow="md"
+          borderRadius="15px"
+          css={{
+            border: "1px solid gray",
+          }}
+        >
+          <Text mb="0.5rem" fontSize="sm" fontWeight="medium">
+            Transmit Success: {(store.progress / 100) * Number(store.rows)} / {store.rows}
+          </Text>
+          <Box
+            css={{
+              width: `${store.progress}%`,
+              height: 4,
+            }}
+            borderRadius="10px"
+            bg="green.300"
+          ></Box>
+        </Box>
+      )}
     </Box>
   )
 })

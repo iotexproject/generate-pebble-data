@@ -1,13 +1,15 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-import * as $protobuf from "protobufjs/minimal";
+"use strict";
+
+var $protobuf = require("protobufjs/minimal");
 
 // Common aliases
-const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
+var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
 // Exported root namespace
-const $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
+var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-export const SensorData = $root.SensorData = (() => {
+$root.SensorData = (function() {
 
     /**
      * Properties of a SensorData.
@@ -40,7 +42,7 @@ export const SensorData = $root.SensorData = (() => {
         this.gyroscope = [];
         this.accelerometer = [];
         if (properties)
-            for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                 if (properties[keys[i]] != null)
                     this[keys[i]] = properties[keys[i]];
     }
@@ -194,10 +196,10 @@ export const SensorData = $root.SensorData = (() => {
         if (message.temperature2 != null && Object.hasOwnProperty.call(message, "temperature2"))
             writer.uint32(/* id 10, wireType 0 =*/80).uint32(message.temperature2);
         if (message.gyroscope != null && message.gyroscope.length)
-            for (let i = 0; i < message.gyroscope.length; ++i)
+            for (var i = 0; i < message.gyroscope.length; ++i)
                 writer.uint32(/* id 11, wireType 0 =*/88).sint32(message.gyroscope[i]);
         if (message.accelerometer != null && message.accelerometer.length)
-            for (let i = 0; i < message.accelerometer.length; ++i)
+            for (var i = 0; i < message.accelerometer.length; ++i)
                 writer.uint32(/* id 12, wireType 0 =*/96).sint32(message.accelerometer[i]);
         if (message.random != null && Object.hasOwnProperty.call(message, "random"))
             writer.uint32(/* id 13, wireType 2 =*/106).string(message.random);
@@ -231,9 +233,9 @@ export const SensorData = $root.SensorData = (() => {
     SensorData.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader))
             reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length, message = new $root.SensorData();
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.SensorData();
         while (reader.pos < end) {
-            let tag = reader.uint32();
+            var tag = reader.uint32();
             switch (tag >>> 3) {
             case 1:
                 message.snr = reader.uint32();
@@ -269,7 +271,7 @@ export const SensorData = $root.SensorData = (() => {
                 if (!(message.gyroscope && message.gyroscope.length))
                     message.gyroscope = [];
                 if ((tag & 7) === 2) {
-                    let end2 = reader.uint32() + reader.pos;
+                    var end2 = reader.uint32() + reader.pos;
                     while (reader.pos < end2)
                         message.gyroscope.push(reader.sint32());
                 } else
@@ -279,7 +281,7 @@ export const SensorData = $root.SensorData = (() => {
                 if (!(message.accelerometer && message.accelerometer.length))
                     message.accelerometer = [];
                 if ((tag & 7) === 2) {
-                    let end2 = reader.uint32() + reader.pos;
+                    var end2 = reader.uint32() + reader.pos;
                     while (reader.pos < end2)
                         message.accelerometer.push(reader.sint32());
                 } else
@@ -356,14 +358,14 @@ export const SensorData = $root.SensorData = (() => {
         if (message.gyroscope != null && message.hasOwnProperty("gyroscope")) {
             if (!Array.isArray(message.gyroscope))
                 return "gyroscope: array expected";
-            for (let i = 0; i < message.gyroscope.length; ++i)
+            for (var i = 0; i < message.gyroscope.length; ++i)
                 if (!$util.isInteger(message.gyroscope[i]))
                     return "gyroscope: integer[] expected";
         }
         if (message.accelerometer != null && message.hasOwnProperty("accelerometer")) {
             if (!Array.isArray(message.accelerometer))
                 return "accelerometer: array expected";
-            for (let i = 0; i < message.accelerometer.length; ++i)
+            for (var i = 0; i < message.accelerometer.length; ++i)
                 if (!$util.isInteger(message.accelerometer[i]))
                     return "accelerometer: integer[] expected";
         }
@@ -384,7 +386,7 @@ export const SensorData = $root.SensorData = (() => {
     SensorData.fromObject = function fromObject(object) {
         if (object instanceof $root.SensorData)
             return object;
-        let message = new $root.SensorData();
+        var message = new $root.SensorData();
         if (object.snr != null)
             message.snr = object.snr >>> 0;
         if (object.vbat != null)
@@ -409,14 +411,14 @@ export const SensorData = $root.SensorData = (() => {
             if (!Array.isArray(object.gyroscope))
                 throw TypeError(".SensorData.gyroscope: array expected");
             message.gyroscope = [];
-            for (let i = 0; i < object.gyroscope.length; ++i)
+            for (var i = 0; i < object.gyroscope.length; ++i)
                 message.gyroscope[i] = object.gyroscope[i] | 0;
         }
         if (object.accelerometer) {
             if (!Array.isArray(object.accelerometer))
                 throw TypeError(".SensorData.accelerometer: array expected");
             message.accelerometer = [];
-            for (let i = 0; i < object.accelerometer.length; ++i)
+            for (var i = 0; i < object.accelerometer.length; ++i)
                 message.accelerometer[i] = object.accelerometer[i] | 0;
         }
         if (object.random != null)
@@ -436,7 +438,7 @@ export const SensorData = $root.SensorData = (() => {
     SensorData.toObject = function toObject(message, options) {
         if (!options)
             options = {};
-        let object = {};
+        var object = {};
         if (options.arrays || options.defaults) {
             object.gyroscope = [];
             object.accelerometer = [];
@@ -476,12 +478,12 @@ export const SensorData = $root.SensorData = (() => {
             object.temperature2 = message.temperature2;
         if (message.gyroscope && message.gyroscope.length) {
             object.gyroscope = [];
-            for (let j = 0; j < message.gyroscope.length; ++j)
+            for (var j = 0; j < message.gyroscope.length; ++j)
                 object.gyroscope[j] = message.gyroscope[j];
         }
         if (message.accelerometer && message.accelerometer.length) {
             object.accelerometer = [];
-            for (let j = 0; j < message.accelerometer.length; ++j)
+            for (var j = 0; j < message.accelerometer.length; ++j)
                 object.accelerometer[j] = message.accelerometer[j];
         }
         if (message.random != null && message.hasOwnProperty("random"))
@@ -503,7 +505,7 @@ export const SensorData = $root.SensorData = (() => {
     return SensorData;
 })();
 
-export const SensorConfig = $root.SensorConfig = (() => {
+$root.SensorConfig = (function() {
 
     /**
      * Properties of a SensorConfig.
@@ -528,7 +530,7 @@ export const SensorConfig = $root.SensorConfig = (() => {
      */
     function SensorConfig(properties) {
         if (properties)
-            for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                 if (properties[keys[i]] != null)
                     this[keys[i]] = properties[keys[i]];
     }
@@ -657,9 +659,9 @@ export const SensorConfig = $root.SensorConfig = (() => {
     SensorConfig.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader))
             reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length, message = new $root.SensorConfig();
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.SensorConfig();
         while (reader.pos < end) {
-            let tag = reader.uint32();
+            var tag = reader.uint32();
             switch (tag >>> 3) {
             case 1:
                 message.bulkUpload = reader.uint32();
@@ -752,7 +754,7 @@ export const SensorConfig = $root.SensorConfig = (() => {
     SensorConfig.fromObject = function fromObject(object) {
         if (object instanceof $root.SensorConfig)
             return object;
-        let message = new $root.SensorConfig();
+        var message = new $root.SensorConfig();
         if (object.bulkUpload != null)
             message.bulkUpload = object.bulkUpload >>> 0;
         if (object.dataChannel != null)
@@ -782,7 +784,7 @@ export const SensorConfig = $root.SensorConfig = (() => {
     SensorConfig.toObject = function toObject(message, options) {
         if (!options)
             options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
             object.bulkUpload = 0;
             object.dataChannel = 0;
@@ -823,7 +825,7 @@ export const SensorConfig = $root.SensorConfig = (() => {
     return SensorConfig;
 })();
 
-export const SensorState = $root.SensorState = (() => {
+$root.SensorState = (function() {
 
     /**
      * Properties of a SensorState.
@@ -842,7 +844,7 @@ export const SensorState = $root.SensorState = (() => {
      */
     function SensorState(properties) {
         if (properties)
-            for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                 if (properties[keys[i]] != null)
                     this[keys[i]] = properties[keys[i]];
     }
@@ -911,9 +913,9 @@ export const SensorState = $root.SensorState = (() => {
     SensorState.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader))
             reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length, message = new $root.SensorState();
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.SensorState();
         while (reader.pos < end) {
-            let tag = reader.uint32();
+            var tag = reader.uint32();
             switch (tag >>> 3) {
             case 1:
                 message.state = reader.uint32();
@@ -970,7 +972,7 @@ export const SensorState = $root.SensorState = (() => {
     SensorState.fromObject = function fromObject(object) {
         if (object instanceof $root.SensorState)
             return object;
-        let message = new $root.SensorState();
+        var message = new $root.SensorState();
         if (object.state != null)
             message.state = object.state >>> 0;
         return message;
@@ -988,7 +990,7 @@ export const SensorState = $root.SensorState = (() => {
     SensorState.toObject = function toObject(message, options) {
         if (!options)
             options = {};
-        let object = {};
+        var object = {};
         if (options.defaults)
             object.state = 0;
         if (message.state != null && message.hasOwnProperty("state"))
@@ -1010,7 +1012,7 @@ export const SensorState = $root.SensorState = (() => {
     return SensorState;
 })();
 
-export const SensorConfirm = $root.SensorConfirm = (() => {
+$root.SensorConfirm = (function() {
 
     /**
      * Properties of a SensorConfirm.
@@ -1029,7 +1031,7 @@ export const SensorConfirm = $root.SensorConfirm = (() => {
      */
     function SensorConfirm(properties) {
         if (properties)
-            for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                 if (properties[keys[i]] != null)
                     this[keys[i]] = properties[keys[i]];
     }
@@ -1098,9 +1100,9 @@ export const SensorConfirm = $root.SensorConfirm = (() => {
     SensorConfirm.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader))
             reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length, message = new $root.SensorConfirm();
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.SensorConfirm();
         while (reader.pos < end) {
-            let tag = reader.uint32();
+            var tag = reader.uint32();
             switch (tag >>> 3) {
             case 1:
                 message.owner = reader.string();
@@ -1157,7 +1159,7 @@ export const SensorConfirm = $root.SensorConfirm = (() => {
     SensorConfirm.fromObject = function fromObject(object) {
         if (object instanceof $root.SensorConfirm)
             return object;
-        let message = new $root.SensorConfirm();
+        var message = new $root.SensorConfirm();
         if (object.owner != null)
             message.owner = String(object.owner);
         return message;
@@ -1175,7 +1177,7 @@ export const SensorConfirm = $root.SensorConfirm = (() => {
     SensorConfirm.toObject = function toObject(message, options) {
         if (!options)
             options = {};
-        let object = {};
+        var object = {};
         if (options.defaults)
             object.owner = "";
         if (message.owner != null && message.hasOwnProperty("owner"))
@@ -1197,7 +1199,7 @@ export const SensorConfirm = $root.SensorConfirm = (() => {
     return SensorConfirm;
 })();
 
-export const BinPackage = $root.BinPackage = (() => {
+$root.BinPackage = (function() {
 
     /**
      * Properties of a BinPackage.
@@ -1219,7 +1221,7 @@ export const BinPackage = $root.BinPackage = (() => {
      */
     function BinPackage(properties) {
         if (properties)
-            for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                 if (properties[keys[i]] != null)
                     this[keys[i]] = properties[keys[i]];
     }
@@ -1314,9 +1316,9 @@ export const BinPackage = $root.BinPackage = (() => {
     BinPackage.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader))
             reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length, message = new $root.BinPackage();
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.BinPackage();
         while (reader.pos < end) {
-            let tag = reader.uint32();
+            var tag = reader.uint32();
             switch (tag >>> 3) {
             case 1:
                 message.type = reader.int32();
@@ -1401,7 +1403,7 @@ export const BinPackage = $root.BinPackage = (() => {
     BinPackage.fromObject = function fromObject(object) {
         if (object instanceof $root.BinPackage)
             return object;
-        let message = new $root.BinPackage();
+        var message = new $root.BinPackage();
         switch (object.type) {
         case "DATA":
         case 0:
@@ -1443,7 +1445,7 @@ export const BinPackage = $root.BinPackage = (() => {
     BinPackage.toObject = function toObject(message, options) {
         if (!options)
             options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
             object.type = options.enums === String ? "DATA" : 0;
             if (options.bytes === String)
@@ -1493,7 +1495,7 @@ export const BinPackage = $root.BinPackage = (() => {
      * @property {number} STATE=2 STATE value
      */
     BinPackage.PackageType = (function() {
-        const valuesById = {}, values = Object.create(valuesById);
+        var valuesById = {}, values = Object.create(valuesById);
         values[valuesById[0] = "DATA"] = 0;
         values[valuesById[1] = "CONFIG"] = 1;
         values[valuesById[2] = "STATE"] = 2;
@@ -1503,7 +1505,7 @@ export const BinPackage = $root.BinPackage = (() => {
     return BinPackage;
 })();
 
-export const ConfirmPackage = $root.ConfirmPackage = (() => {
+$root.ConfirmPackage = (function() {
 
     /**
      * Properties of a ConfirmPackage.
@@ -1512,6 +1514,7 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
      * @property {Uint8Array} owner ConfirmPackage owner
      * @property {number} timestamp ConfirmPackage timestamp
      * @property {Uint8Array} signature ConfirmPackage signature
+     * @property {number} channel ConfirmPackage channel
      */
 
     /**
@@ -1524,7 +1527,7 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
      */
     function ConfirmPackage(properties) {
         if (properties)
-            for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                 if (properties[keys[i]] != null)
                     this[keys[i]] = properties[keys[i]];
     }
@@ -1554,6 +1557,14 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
     ConfirmPackage.prototype.signature = $util.newBuffer([]);
 
     /**
+     * ConfirmPackage channel.
+     * @member {number} channel
+     * @memberof ConfirmPackage
+     * @instance
+     */
+    ConfirmPackage.prototype.channel = 0;
+
+    /**
      * Creates a new ConfirmPackage instance using the specified properties.
      * @function create
      * @memberof ConfirmPackage
@@ -1580,6 +1591,7 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
         writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.owner);
         writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.timestamp);
         writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.signature);
+        writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.channel);
         return writer;
     };
 
@@ -1610,9 +1622,9 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
     ConfirmPackage.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader))
             reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length, message = new $root.ConfirmPackage();
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.ConfirmPackage();
         while (reader.pos < end) {
-            let tag = reader.uint32();
+            var tag = reader.uint32();
             switch (tag >>> 3) {
             case 1:
                 message.owner = reader.bytes();
@@ -1622,6 +1634,9 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
                 break;
             case 3:
                 message.signature = reader.bytes();
+                break;
+            case 4:
+                message.channel = reader.uint32();
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -1634,6 +1649,8 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
             throw $util.ProtocolError("missing required 'timestamp'", { instance: message });
         if (!message.hasOwnProperty("signature"))
             throw $util.ProtocolError("missing required 'signature'", { instance: message });
+        if (!message.hasOwnProperty("channel"))
+            throw $util.ProtocolError("missing required 'channel'", { instance: message });
         return message;
     };
 
@@ -1670,6 +1687,8 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
             return "timestamp: integer expected";
         if (!(message.signature && typeof message.signature.length === "number" || $util.isString(message.signature)))
             return "signature: buffer expected";
+        if (!$util.isInteger(message.channel))
+            return "channel: integer expected";
         return null;
     };
 
@@ -1684,7 +1703,7 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
     ConfirmPackage.fromObject = function fromObject(object) {
         if (object instanceof $root.ConfirmPackage)
             return object;
-        let message = new $root.ConfirmPackage();
+        var message = new $root.ConfirmPackage();
         if (object.owner != null)
             if (typeof object.owner === "string")
                 $util.base64.decode(object.owner, message.owner = $util.newBuffer($util.base64.length(object.owner)), 0);
@@ -1697,6 +1716,8 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
                 $util.base64.decode(object.signature, message.signature = $util.newBuffer($util.base64.length(object.signature)), 0);
             else if (object.signature.length)
                 message.signature = object.signature;
+        if (object.channel != null)
+            message.channel = object.channel >>> 0;
         return message;
     };
 
@@ -1712,7 +1733,7 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
     ConfirmPackage.toObject = function toObject(message, options) {
         if (!options)
             options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
             if (options.bytes === String)
                 object.owner = "";
@@ -1729,6 +1750,7 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
                 if (options.bytes !== Array)
                     object.signature = $util.newBuffer(object.signature);
             }
+            object.channel = 0;
         }
         if (message.owner != null && message.hasOwnProperty("owner"))
             object.owner = options.bytes === String ? $util.base64.encode(message.owner, 0, message.owner.length) : options.bytes === Array ? Array.prototype.slice.call(message.owner) : message.owner;
@@ -1736,6 +1758,8 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
             object.timestamp = message.timestamp;
         if (message.signature != null && message.hasOwnProperty("signature"))
             object.signature = options.bytes === String ? $util.base64.encode(message.signature, 0, message.signature.length) : options.bytes === Array ? Array.prototype.slice.call(message.signature) : message.signature;
+        if (message.channel != null && message.hasOwnProperty("channel"))
+            object.channel = message.channel;
         return object;
     };
 
@@ -1753,4 +1777,4 @@ export const ConfirmPackage = $root.ConfirmPackage = (() => {
     return ConfirmPackage;
 })();
 
-export { $root as default };
+module.exports = $root;

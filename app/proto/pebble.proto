@@ -25,7 +25,7 @@ message SensorConfig
     optional uint32 bulkUploadSamplingCnt = 4;
     optional uint32 bulkUploadSamplingFreq = 5;
     optional uint32 beep = 6;
-    optional string firmware = 7; 
+    optional string firmware = 7;
 }
 
 message SensorState
@@ -54,4 +54,5 @@ message ConfirmPackage {
     required bytes owner = 1;
     required uint32 timestamp = 2;
     required bytes signature = 3;
+    required uint32 channel = 4;
 }
