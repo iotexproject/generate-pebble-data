@@ -95,7 +95,7 @@ const Home: BlitzPage = observer(() => {
     startSite: new Array(),
     endPlace: "",
     endSite: new Array(),
-    rows: gpsRoutes[0]?.coordinates.length,
+    rows: 100,
     gpsRoute: 0,
     progress: 0,
     genRandom(nn: string, mm: string) {

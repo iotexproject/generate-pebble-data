@@ -129,14 +129,14 @@ export const ConfrimDevice = observer((props: IComponentProps) => {
               direction={["column", "row"]}
             >
               <Text fontSize="sm" w="200px" mb={[2, 0]}>
-                Address
+                Owner Addr
               </Text>
               <Input
                 onChange={(e) => {
                   store.onInputChange(e, 2)
                 }}
                 value={store.address}
-                placeholder={"Address"}
+                placeholder={"Owner Addr"}
                 size="sm"
               />
             </Flex>
