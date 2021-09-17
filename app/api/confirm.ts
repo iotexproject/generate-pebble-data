@@ -23,7 +23,6 @@ const handler = async (req: BlitzApiRequest, res: BlitzApiResponse) => {
 
     const pkg = Buffer.from(ConfirmPackage.encode(confirm).finish());
     const client = await MqttService.createClient()
-    console.log('pkg', pkg, 'fc71aeF9cDc9f4815F6096a282A39FB56176Cc28')
     try {
       const response = await client?.publish(`device/${imei}/confirm`, pkg)
       const end = await client?.end()

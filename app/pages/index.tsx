@@ -151,14 +151,14 @@ const Home: BlitzPage = observer(() => {
       return null
     },
     genPushData(index: any) {
-      console.log(store.genGyroscope())
       const diff =
         (moment(store.endTime).unix() - moment(store.startTime).unix()) / Number(store.rows)
       const data = {
         // @ts-ignore
-        latitude: store.coordinates[index][1],
+        latitude: Number(this.formatCoordinates(store.coordinates[index][1])),
         // @ts-ignore
-        longitude: store.coordinates[index][0],
+        // longitude: Number(this.formatCoordinates(store.coordinates[index][0])),
+        longitude: 1143685880,
         temperature: store.genColumnData(0),
         gasResistance: store.genColumnData(1),
         snr: store.genColumnData(2),
@@ -172,14 +172,22 @@ const Home: BlitzPage = observer(() => {
         gyroscope: store.genGyroscope(),
         accelerometer: store.genAccelerometer(),
       }
+      console.log("data", data.latitude, data.longitude)
       return data
+    },
+    formatCoordinates(value) {
+      if (value < 0) {
+        return Number(`-${Number(value.toString().split("-")[1]) * 10000000}`).toFixed(0)
+      } else {
+        return (value * 10000000).toFixed(0)
+      }
     },
     async pushData(privateKey: string, imei: string) {
       this.progress = 1
       const rows = Number(store.rows)
       for (let index = 0; index < rows; index++) {
         const genData = store.genPushData(index)
-        this.progress = (index / rows) * 100
+        this.progress = ((index + 1) / rows) * 100
         try {
           store.transmitLoading = true
           const response = await axios.post("/api/push", {
@@ -267,6 +275,7 @@ const Home: BlitzPage = observer(() => {
       store.type = "Range"
       // @ts-ignore
       store.coordinates = gpsRoutes[e.target.value]?.coordinates
+      // @ts-ignore
       store.rows = store.coordinates?.length
       store.gpsRoute = e.target.value
     },
@@ -660,12 +669,10 @@ const Home: BlitzPage = observer(() => {
           privateKey: privateKey,
           address: address,
         })
-        store.confirmLoading = false
         if (response.data.success) {
           toast.success("Transmit Success")
-        } else {
-          toast.error(response.data.msg)
         }
+        store.confirmLoading = false
       } catch (error) {
         toast.error(error)
         store.confirmLoading = false
@@ -758,6 +765,7 @@ const Home: BlitzPage = observer(() => {
           <Button
             color="white"
             background="brandColor"
+            isLoading={store.confirmLoading}
             onClick={() => {
               store.confrimDeviceVisible = true
             }}
@@ -1337,7 +1345,8 @@ const Home: BlitzPage = observer(() => {
           }}
         >
           <Text mb="0.5rem" fontSize="sm" fontWeight="medium">
-            Transmit Success: {(store.progress / 100) * Number(store.rows)} / {store.rows}
+            Transmit Success:
+            {((store.progress / 100) * Number(store.rows)).toFixed(0)} / {store.rows}
           </Text>
           <Box
             css={{
