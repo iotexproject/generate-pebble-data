@@ -33,7 +33,7 @@ const Home: BlitzPage = observer(() => {
     confirmLoading: false,
     buttonEnable: true,
     columnEnables: Array(12).fill(true) as boolean[],
-    formatType: null as unknown as string,
+    formatType: "CSV",
     coordinates: gpsRoutes[0]?.coordinates,
     gyroscope: [],
     accelerometer: [],
@@ -108,7 +108,8 @@ const Home: BlitzPage = observer(() => {
         const d = store.columnTypes[col]!.random
           ? store.genRandom(store.columnTypes[col]!.value.max, store.columnTypes[col]!.value.min)
           : parseFloat(store.columnTypes[col]!.value.value)
-        return `${d}`
+        console.log("genColumnData", d.toString().indexOf(".") === -1 ? `${d}` : `${d.toFixed(3)}`)
+        return d.toString().indexOf(".") === -1 ? `${d}` : `${d.toFixed(3)}`
       }
       return null
     },
@@ -288,14 +289,14 @@ const Home: BlitzPage = observer(() => {
     onMinInputChange(e: any, index: number) {
       if (index < 10) {
         if (!isNaN(Number(e.target.value))) {
-          store.columnTypes[index]!.value.min = e.target.value
+          store.columnTypes[index]!.value.min = e.target.value < 0 ? 0 : e.target.value
         }
       }
       store.checckButtonEnable()
     },
     onValueInputChange(e: any, index: number) {
       if (!isNaN(Number(e.target.value))) {
-        store.columnTypes[index]!.value.value = e.target.value
+        store.columnTypes[index]!.value.value = e.target.value < 0 ? 0 : e.target.value
       }
       store.checckButtonEnable()
     },
@@ -728,19 +729,20 @@ const Home: BlitzPage = observer(() => {
           <Text fontSize="1rem" fontWeight="semibold" ml="20px" mr="10px">
             Format:
           </Text>
-          <Select
+          <Input w="100px" value={store.formatType} isReadOnly width="200px" />
+          {/* <Select
             display="inline-block"
             w="200px"
+            isReadOnly
             onChange={(e) => {
               console.log(e.target.value)
               store.formatType = e.target.value
             }}
             value={store.formatType}
-            placeholder="select type"
           >
             <option value="JSON">JSON</option>
             <option value="CSV">CSV</option>
-          </Select>
+          </Select> */}
           <Button
             ml="20px"
             color="white"
@@ -1078,7 +1080,6 @@ const Home: BlitzPage = observer(() => {
                               value={store.columnTypes[index]!.value.min}
                               mt="10px"
                               width="100px"
-                              placeholder="20"
                             />
                           </Flex>
                           <Flex width="25%" align="start" direction="column">
@@ -1090,7 +1091,6 @@ const Home: BlitzPage = observer(() => {
                               value={store.columnTypes[index]!.value.max}
                               mt="10px"
                               width="100px"
-                              placeholder="20"
                             />
                           </Flex>
                         </Flex>
