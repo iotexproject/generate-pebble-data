@@ -151,15 +151,18 @@ const Home: BlitzPage = observer(() => {
       }
       return null
     },
-    genPushData(index: any) {
+    genPushData(index: any, type: any) {
       const diff =
         (moment(store.endTime).unix() - moment(store.startTime).unix()) / Number(store.rows)
+      // @ts-ignore
+      const latformat = Number(this.formatCoordinates(store.coordinates[index][1]))
+      // @ts-ignore
+      const lngformat = Number(this.formatCoordinates(store.coordinates[index][0]))
       const data = {
         // @ts-ignore
-        latitude: Number(this.formatCoordinates(store.coordinates[index][1])),
+        latitude: type === 1 ? store.coordinates[index][1] : latformat,
         // @ts-ignore
-        // longitude: Number(this.formatCoordinates(store.coordinates[index][0])),
-        longitude: 1143685880,
+        longitude: type === 1 ? store.coordinates[index][0] : lngformat,
         temperature: store.genColumnData(0),
         gasResistance: store.genColumnData(1),
         snr: store.genColumnData(2),
@@ -187,7 +190,7 @@ const Home: BlitzPage = observer(() => {
       this.progress = 1
       const rows = Number(store.rows)
       for (let index = 0; index < rows; index++) {
-        const genData = store.genPushData(index)
+        const genData = store.genPushData(index, 2)
         this.progress = ((index + 1) / rows) * 100
         try {
           store.transmitLoading = true
@@ -217,7 +220,7 @@ const Home: BlitzPage = observer(() => {
         const rows = Number(store.rows)
         let genData = new Array()
         for (let index = 0; index < rows; index++) {
-          const data = store.genPushData(index)
+          const data = store.genPushData(index, 1)
           genData.push(data)
         }
         store.saveJSON(
@@ -233,7 +236,7 @@ const Home: BlitzPage = observer(() => {
         let genData = new Array<Array<any>>()
         for (let index = 0; index < rows; index++) {
           var arr = []
-          const data = store.genPushData(index)
+          const data = store.genPushData(index, 1)
           for (const key in data) {
             if (Object.prototype.hasOwnProperty.call(data, key)) {
               const element = data[key]
@@ -248,7 +251,7 @@ const Home: BlitzPage = observer(() => {
           }
           genData.push(arr)
         }
-        const data = store.genPushData(0)
+        const data = store.genPushData(0, 1)
         genData.unshift(Object.keys(data))
         var filename = `${moment(store.startTime).format("YYYY/MM/DD")}-${moment(
           store.endTime
