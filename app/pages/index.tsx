@@ -43,7 +43,7 @@ const Home: BlitzPage = observer(() => {
     searchFeatures: new Array(),
     searchEndFeatures: new Array(),
     type: "Range",
-    confrimDeviceVisible: false,
+    confrimDeviceVisible: true,
     config: {
       privateKey: "",
       imei: "",
