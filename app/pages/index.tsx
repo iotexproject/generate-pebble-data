@@ -678,6 +678,8 @@ const Home: BlitzPage = observer(() => {
         if (response.data.success) {
           toast.success("Transmit Success")
           store.confirmed = true
+        } else {
+          toast.error("Transmission Error. Please try again")
         }
         store.confirmLoading = false
       } catch (error) {
