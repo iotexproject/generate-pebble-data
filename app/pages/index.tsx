@@ -31,6 +31,7 @@ const Home: BlitzPage = observer(() => {
     inputPrivateKeyDialogVisible: false,
     transmitLoading: false,
     confirmLoading: false,
+    confirmed: false,
     buttonEnable: true,
     columnEnables: Array(12).fill(true) as boolean[],
     formatType: "CSV",
@@ -666,6 +667,7 @@ const Home: BlitzPage = observer(() => {
     async confrimDevice(privateKey: string, imei: string, address: string) {
       store.config.privateKey = privateKey
       store.config.imei = imei
+      store.confirmed = false
       try {
         store.confirmLoading = true
         const response = await axios.post("/api/confirm", {
@@ -675,6 +677,9 @@ const Home: BlitzPage = observer(() => {
         })
         if (response.data.success) {
           toast.success("Transmit Success")
+          store.confirmed = true
+        } else {
+          toast.error("Transmission Error. Please try again")
         }
         store.confirmLoading = false
       } catch (error) {
@@ -779,7 +784,7 @@ const Home: BlitzPage = observer(() => {
             Configure Your Device
           </Button>
           <Button
-            disabled={!(store.config.imei !== "" && store.config.privateKey !== "")}
+            disabled={!(store.confirmed && store.config.imei !== "" && store.config.privateKey !== "")}
             isLoading={store.transmitLoading}
             ml="15px"
             color="white"
