@@ -12,7 +12,7 @@ const handler = async (req: BlitzApiRequest, res: BlitzApiResponse) => {
   const sensorData = SensorData.create(requestData)
   console.log('sensorData', sensorData)
   const data = Buffer.from(SensorData.encode(sensorData).finish())
-  const timestamp = _.round(Date.now() / 1000)
+  const timestamp = _.round(JSON.parse(req.body.data).timestamp)
   const type = BinPackage.PackageType.DATA
 
   const hash = sha256(
