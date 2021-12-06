@@ -182,9 +182,9 @@ const Home: BlitzPage = observer(() => {
     },
     formatCoordinates(value) {
       if (value < 0) {
-        return Number(`-${Number(value.toString().split("-")[1]) * 100000}`).toFixed(0)
+        return Number(`-${Number(value.toString().split("-")[1]) * 10000000}`).toFixed(0)
       } else {
-        return (value * 100000).toFixed(0)
+        return (value * 10000000).toFixed(0)
       }
     },
     async pushData(privateKey: string, imei: string) {
