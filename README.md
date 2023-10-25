@@ -1,10 +1,10 @@
+# Pebble Data Generator
+
 This is a [Pebble Tracker](https://docs.iotex.io/secure-hardware/pebble-tracker) verifiable data generator: it generates a set of data for an hypotatycal Pebble Device, accounrding to the user rules, then it signs the data as a area device would do and transmits the data to the IoTeX network for use in Dapps.
 
 This tool is available at [https://brewmy.info](https://brewmy.info])
 
 This is app is created using [Blitz.js](https://github.com/blitz-js/blitz).
-
-# Pebble Data Generator
 
 ## For users
 
